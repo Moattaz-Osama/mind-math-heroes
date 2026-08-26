@@ -112,7 +112,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, .card:focus-vis
   margin-top:3px;font-size:8.5px;font-weight:800;color:var(--brown);white-space:nowrap;
   pointer-events:none;line-height:1;}
 
-h1{font-size:clamp(24px,6.5vw,38px);margin:6px 0 2px;text-shadow:2px 2px 0 #fff;}
+h1{font-size:clamp(24px,6.5vw,38px);margin:6px 0 2px;}
+/* the 2px solid-white offset shadow is a crisp "sticker" outline on the chunky Baloo 2
+   webfont it was designed for, but on a fresh visit the browser paints the fallback
+   sans-serif first (Google Fonts loads with font-display:swap) — the same shadow on
+   those much thinner strokes reads as a hazy, ghosted double-print. Scoping it to
+   fonts-ready keeps the title crisp during that flash and pops the shadow in once the
+   intended font is actually active. */
+html.fonts-ready h1{text-shadow:2px 2px 0 #fff;}
 h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .subtitle{font-size:clamp(14px,3.4vw,18px);color:var(--text-muted);margin-bottom:6px;font-weight:600;}
 
@@ -667,6 +674,14 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
 <script>
 (function(){
 "use strict";
+
+// gates the h1 "sticker" text-shadow (see the .fonts-ready CSS rule) until the real
+// webfont is confirmed active, so a slow/cold font load never shows the hazy fallback+shadow combo
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(()=> document.documentElement.classList.add('fonts-ready'));
+} else {
+  document.documentElement.classList.add('fonts-ready');
+}
 
 /* ================= i18n ================= */
 const STRINGS = {

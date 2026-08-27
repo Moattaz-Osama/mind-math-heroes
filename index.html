@@ -98,6 +98,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, .card:focus-vis
   border-radius:0 0 18px 18px;}
 .pill{background:var(--surface);border:3px solid var(--carrot);border-radius:999px;padding:5px 12px;
   font-size:17px;font-weight:700;display:flex;align-items:center;gap:5px;box-shadow:0 3px 0 rgba(0,0,0,.08);}
+/* the 🪙 emoji (Unicode 12, 2019) falls back to a flat monochrome glyph in the current text
+   color on devices/browsers whose emoji font doesn't have it — which reads as a plain black
+   coin instead of gold. A small hand-drawn SVG renders identically everywhere, same as the
+   hero/gear art elsewhere in this file, with no platform-dependent emoji-font risk at all. */
+.coin-icon{width:1.05em;height:1.05em;vertical-align:-0.16em;flex-shrink:0;}
+/* icon-cluster spacing shared by every top-bar so it can never drift out of sync between
+   screens — was a 6px gap repeated inline per screen, tight enough to feel cramped */
+.top-bar-icons{display:flex;gap:10px;}
 .round-btn{background:var(--surface);border:3px solid var(--berry);border-radius:999px;width:40px;height:40px;
   font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.08);cursor:pointer;
   transition:transform .16s var(--ease-spring),box-shadow .16s ease;position:relative;}
@@ -105,15 +113,14 @@ button:focus-visible, input:focus-visible, select:focus-visible, .card:focus-vis
 .round-btn:active{transform:translateY(2px) scale(.92);box-shadow:0 1px 0 rgba(0,0,0,.08);}
 .btn-lang-toggle.spinning{animation:globeSpin .45s var(--ease-spring);}
 @keyframes globeSpin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-/* bumped from 37px so icon-only controls clear the 44px touch-target guideline —
-   children have less precise motor control than adults, and there's ample slack
-   in the top-bar even at a 320px-wide phone (verified: room to spare, no wrap/overflow) */
-.round-btn.sm{width:44px;height:44px;font-size:18px;}
+/* was 44px (bumped from an original 37px to clear the touch-target guideline) — nudged a
+   little further per request; still comfortably fits the icon cluster at a 320px-wide phone */
+.round-btn.sm{width:48px;height:48px;font-size:20px;}
 /* icon-only buttons weren't clear about what they do — a small permanent caption underneath
    beats an invisible aria-label or a hover-only tooltip that touch devices can't trigger */
 .round-btn[data-label]::after{
   content:attr(data-label);position:absolute;top:100%;left:50%;transform:translateX(-50%);
-  margin-top:3px;font-size:8.5px;font-weight:800;color:var(--brown);white-space:nowrap;
+  margin-top:3px;font-size:9px;font-weight:800;color:var(--brown);white-space:nowrap;
   pointer-events:none;line-height:1;}
 
 h1{font-size:clamp(24px,6.5vw,38px);margin:6px 0 2px;}
@@ -168,9 +175,10 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 /* sticky for the same reason as .teacher-sticky below: scrolling the Gear tab's shop grid
    (or a long Heroes grid) used to carry these tabs up underneath the app's own sticky
    top-bar and out of reach, with no way to switch tabs again without scrolling back to the
-   very top first. top:74px matches the top-bar's own box model (10px+44px+20px). */
+   very top first. top:78px matches the top-bar's own box model (10px+48px+20px — kept in
+   sync with .round-btn.sm's height, not an independent number). */
 .tab-row{display:flex;gap:8px;justify-content:center;z-index:5;margin-bottom:10px;
-  position:sticky;top:74px;width:100%;padding:8px 0;border-radius:14px;
+  position:sticky;top:78px;width:100%;padding:8px 0;border-radius:14px;
   background:var(--surface-translucent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
 .tab-btn{font-family:inherit;font-size:15px;font-weight:700;padding:9px 18px;min-height:44px;border-radius:14px;
   border:3px solid var(--border-soft);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:transform .08s;}
@@ -375,19 +383,28 @@ html[dir="rtl"] .cert-seal{right:auto;left:14px;}
 
 /* ---- teacher mode ---- */
 .teacher-panel{width:100%;max-width:520px;background:var(--surface);border-radius:20px;padding:16px;box-shadow:0 6px 0 rgba(0,0,0,.08);z-index:5;margin-top:6px;}
-/* Level select / New Problem / stage / Show Next / Reveal Answer are the controls a teacher
-   presses over and over through a live lesson — Class Tally sits below them and, once the
-   abacus panel is toggled on, needs scrolling to reach. Without this, that scroll carries
-   these controls up underneath the app's own sticky top-bar (74px = its own 10px+44px+20px
-   box model) and out of reach, with no scroll position that shows both at once. Pinning this
-   block right below the top-bar keeps the "what am I presenting" controls always reachable,
-   while only the supplementary abacus drawing and the tally itself scroll underneath. */
-.teacher-sticky{position:sticky;top:74px;z-index:4;margin:0 -16px;padding:0 16px 2px;
+/* Level select / New Problem / stage / Show Next / Reveal Answer / Show Abacus / Read Aloud
+   are the controls a teacher presses over and over through a live lesson — Class Tally sits
+   below them and, once the abacus panel is toggled on, needs scrolling to reach. Without this,
+   that scroll carries these controls up underneath the app's own sticky top-bar (78px = its
+   own 10px+48px+20px box model) and out of reach, with no scroll position that shows both at
+   once. Pinning this whole block (including tool-row) right below the top-bar keeps every
+   teacher-facing control always reachable while the abacus drawing and the tally scroll
+   underneath. Including tool-row pushed this block to ~373px tall at a 375x667 viewport,
+   which left only ~5px of clearance before Class Tally's buttons — too tight, so
+   .teacher-stage was trimmed (min-height 110px->78px, padding 24px->14px) and the two
+   .teacher-row/.tool-row top margins inside this block were tightened (8-10px->6px) to buy
+   back headroom. Verified via elementFromPoint hit-testing at every button's center across
+   the full scroll range (0 through max) with zero misses. If this block's content grows again,
+   re-verify the same way — the margin against Class Tally is real but not large. */
+.teacher-sticky{position:sticky;top:78px;z-index:4;margin:0 -16px;padding:0 16px 2px;
   background:var(--surface-translucent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
 .teacher-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
+.teacher-sticky .teacher-row{margin-top:6px;}
+.teacher-sticky .tool-row{margin-top:6px;}
 select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px 12px;border-radius:12px;border:3px solid var(--purple);}
-.teacher-stage{background:#2B2320;border-radius:16px;padding:24px 14px;min-height:110px;display:flex;
-  align-items:center;justify-content:center;margin-top:10px;}
+.teacher-stage{background:#2B2320;border-radius:16px;padding:14px 14px;min-height:78px;display:flex;
+  align-items:center;justify-content:center;margin-top:6px;}
 .teacher-stage .flash-big{color:#FFE9B0;}
 .tally-box{display:flex;gap:16px;justify-content:center;margin-top:10px;font-weight:800;font-size:18px;}
 .tally-box .ok{color:var(--grass-dark);}
@@ -436,8 +453,8 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <!-- START -->
   <section class="screen active" id="screen-start">
     <div class="top-bar">
-      <div class="pill">🪙 <span id="carrots-start">0</span></div>
-      <div style="display:flex;gap:6px;">
+      <div class="pill"><svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg> <span id="carrots-start">0</span></div>
+      <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-theme-toggle" id="btn-theme-toggle">🌙</button>
         <button type="button" class="round-btn sm btn-mute-toggle" id="btn-mute-toggle">🔊</button>
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
@@ -445,7 +462,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       </div>
     </div>
     <h1 data-i18n="appTitle">Mind Math Heroes</h1>
-    <div class="subtitle" data-i18n="appSubtitle">Add and subtract in your head — the hero way!</div>
+    <div class="subtitle" data-i18n="appSubtitle">Train your brain — the hero way!</div>
     <div class="mascot" id="mascot-start">🦸</div>
     <label class="sr-only" for="input-childname" data-i18n="yourName">Your name</label>
     <input class="name-input" id="input-childname" placeholder="Your name" maxlength="20" data-i18n-placeholder="yourName">
@@ -464,8 +481,8 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <!-- CHARACTER SELECT -->
   <section class="screen" id="screen-character">
     <div class="top-bar">
-      <div class="pill">🪙 <span id="carrots-char">0</span></div>
-      <div style="display:flex;gap:6px;">
+      <div class="pill"><svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg> <span id="carrots-char">0</span></div>
+      <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
         <button type="button" class="round-btn sm" id="btn-char-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
       </div>
@@ -490,8 +507,8 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <!-- MODE SELECT -->
   <section class="screen" id="screen-mode">
     <div class="top-bar">
-      <div class="pill">🪙 <span id="carrots-mode">0</span></div>
-      <div style="display:flex;gap:6px;">
+      <div class="pill"><svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg> <span id="carrots-mode">0</span></div>
+      <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
         <button type="button" class="round-btn sm" id="btn-mode-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
       </div>
@@ -511,8 +528,8 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <!-- SKILL MAP -->
   <section class="screen" id="screen-skillmap">
     <div class="top-bar">
-      <div class="pill">🪙 <span id="carrots-skillmap">0</span></div>
-      <div style="display:flex;gap:6px;">
+      <div class="pill"><svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg> <span id="carrots-skillmap">0</span></div>
+      <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
         <button type="button" class="round-btn sm" id="btn-skillmap-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
       </div>
@@ -524,8 +541,8 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <!-- GAME -->
   <section class="screen" id="screen-game">
     <div class="top-bar">
-      <div class="pill">🪙 <span id="carrots-game">0</span></div>
-      <div style="display:flex;gap:6px;">
+      <div class="pill"><svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg> <span id="carrots-game">0</span></div>
+      <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-mute-toggle" id="btn-mute-toggle-game">🔊</button>
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
         <button type="button" class="round-btn sm" id="btn-game-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
@@ -557,8 +574,8 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <!-- ABACUS LAB (free) -->
   <section class="screen" id="screen-abacus-lab">
     <div class="top-bar">
-      <div class="pill">🪙 <span id="carrots-abacus">0</span></div>
-      <div style="display:flex;gap:6px;">
+      <div class="pill"><svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg> <span id="carrots-abacus">0</span></div>
+      <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
         <button type="button" class="round-btn sm" id="btn-abacus-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
       </div>
@@ -617,7 +634,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <section class="screen" id="screen-dashboard">
     <div class="top-bar">
       <div></div>
-      <div style="display:flex;gap:6px;">
+      <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
         <button type="button" class="round-btn sm" id="btn-dash-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
       </div>
@@ -630,7 +647,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <section class="screen" id="screen-teacher">
     <div class="top-bar">
       <div></div>
-      <div style="display:flex;gap:6px;">
+      <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
         <button type="button" class="round-btn sm" id="btn-teacher-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
       </div>
@@ -649,10 +666,10 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
           <button class="big-btn small" id="btn-teacher-next" style="margin-top:0;" data-i18n="showNext">▶️ Show Next</button>
           <button class="big-btn purple small" id="btn-teacher-answer" style="margin-top:0;" data-i18n="revealAnswer">✅ Reveal Answer</button>
         </div>
-      </div>
-      <div class="tool-row" style="margin-top:10px;">
-        <button type="button" class="tool-btn" id="btn-teacher-abacus-toggle" data-i18n="showAbacus">🧮 Show Abacus</button>
-        <button type="button" class="tool-btn" id="btn-teacher-read" data-i18n="readAloud">🔊 Read Aloud</button>
+        <div class="tool-row">
+          <button type="button" class="tool-btn" id="btn-teacher-abacus-toggle" data-i18n="showAbacus">🧮 Show Abacus</button>
+          <button type="button" class="tool-btn" id="btn-teacher-read" data-i18n="readAloud">🔊 Read Aloud</button>
+        </div>
       </div>
       <div class="abacus-wrap hidden" id="teacher-abacus-panel" style="margin-top:10px;"></div>
       <h2 style="margin-top:16px;font-size:18px;" data-i18n="classTally">Class Tally</h2>
@@ -762,7 +779,7 @@ if(document.fonts && document.fonts.ready){
 /* ================= i18n ================= */
 const STRINGS = {
 en: {
-  appTitle:'Mind Math Heroes', appSubtitle:'Add and subtract in your head — the hero way!',
+  appTitle:'Mind Math Heroes', appSubtitle:'Train your brain — the hero way!',
   yourName:'Your name', resumeDefault:'Continue where you left off?', resumeBtn:'▶️ Resume', startFresh:'Start Fresh',
   langToggleLabel:'Switch language', parentGateLabel:'Parent settings', backHome:'Back to home', teacherLevelLabel:'Level to present',
   langLabelShort:'Lang', homeLabelShort:'Home', gateLabelShort:'Parents', themeLabelShort:'Theme', muteLabelShort:'Sound',
@@ -856,7 +873,7 @@ en: {
   modeStory:'Hero Journey', modeSpeed:'Speed Dash', modeDaily:'Daily Mission', modeFree:'Free Play', modeWeak:'Weak Spots'
 },
 ar: {
-  appTitle:'أبطال الحساب الذهني', appSubtitle:'اجمع واطرح في دماغك — بطريقة الأبطال!',
+  appTitle:'أبطال الحساب الذهني', appSubtitle:'درّب عقلك — بطريقة الأبطال!',
   yourName:'اسمك', resumeDefault:'تكمل من حيث وقفت؟', resumeBtn:'▶️ كمّل', startFresh:'ابدأ من جديد',
   langToggleLabel:'تغيير اللغة', parentGateLabel:'إعدادات الوالدين', backHome:'العودة للرئيسية', teacherLevelLabel:'المستوى المعروض',
   langLabelShort:'اللغة', homeLabelShort:'الرئيسية', gateLabelShort:'الوالدين', themeLabelShort:'المظهر', muteLabelShort:'الصوت',
@@ -1184,6 +1201,9 @@ const CHARACTERS = [
   {id:'petal', name:'Blossom Star', nameKey:'charPetal'}
 ];
 function charName(c){ return t(c.nameKey); }
+// shared with the top-bar pill markup — see the .coin-icon CSS comment for why this replaced
+// the 🪙 emoji (unreliable emoji-font fallback rendered as a flat black coin on some devices)
+const COIN_ICON_SVG = '<svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg>';
 // 1 coin per correct answer, up to 25 questions a round — the old prices (5-12 coins, 61
 // total for the whole shop) meant a single strong round could nearly clear the shelf out.
 // Repriced so the first item takes a real round to afford and the full collection takes
@@ -1485,7 +1505,7 @@ function renderShop(){
     d.className = 'shop-item' + (owned?' owned':'') + (upgraded?' upgraded':'');
 
     let statusHtml;
-    if(!owned) statusHtml = '<div class="price">🪙 '+it.price+'</div>';
+    if(!owned) statusHtml = '<div class="price">'+COIN_ICON_SVG+' '+it.price+'</div>';
     else if(upgraded) statusHtml = '<div class="price upgraded-tag">'+t('upgradedLabel')+'</div>';
     else statusHtml = '<div class="price">'+t('ownedLabel')+'</div>';
 
@@ -1495,7 +1515,7 @@ function renderShop(){
     } else {
       buttonsHtml = '<button class="btn-equip">'+(equipped?t('equippedBtn'):t('wearBtn'))+'</button>';
       if(!upgraded){
-        buttonsHtml += '<button class="btn-upgrade"'+(affordableUpgrade?'':' disabled')+'>'+t('upgradeBtn')+' 🪙'+it.upgradePrice+'</button>';
+        buttonsHtml += '<button class="btn-upgrade"'+(affordableUpgrade?'':' disabled')+'>'+t('upgradeBtn')+' '+COIN_ICON_SVG+' '+it.upgradePrice+'</button>';
       }
     }
 

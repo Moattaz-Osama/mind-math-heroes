@@ -31,6 +31,7 @@
   --surface-translucent:rgba(255,255,255,.96);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
   --ease-out: cubic-bezier(.16,1,.3,1);
+  --level-chip-text:#1F6E85; /* 5.43:1 on --sky2, was #2E8AA3 at 3.73:1 (fails WCAG AA) */
 }
 :root[data-theme="dark"]{
   --sky:#1E2A4A; --sky2:#141B33;
@@ -38,6 +39,7 @@
   --bg1:#0E1730; --bg2:#161F3D; --bg3:#1E2A4A; --bg4:#10182E;
   --surface:#232C4E; --text-muted:#C9BEFF; --track-bg:#33406b; --border-soft:#3A487A;
   --surface-translucent:rgba(35,44,78,.96);
+  --level-chip-text:#7FE0E0; /* 11:1 on dark --sky2 */
 }
 :root[data-theme="dark"] .tab-btn.active{background:#3A2F5E;}
 :root[data-theme="dark"] .char-card.selected,
@@ -103,6 +105,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, .card:focus-vis
    coin instead of gold. A small hand-drawn SVG renders identically everywhere, same as the
    hero/gear art elsewhere in this file, with no platform-dependent emoji-font risk at all. */
 .coin-icon{width:1.05em;height:1.05em;vertical-align:-0.16em;flex-shrink:0;}
+/* Same rationale as .coin-icon above, applied to the theme/sound/language/home glyphs — see
+   ICON_SVG in the script for why these replaced 🌙/🔊/🌐/🏠. color:currentColor so it picks
+   up .round-btn's text color instead of carrying its own fixed fill. */
+.ui-icon{width:22px;height:22px;color:var(--brown);flex-shrink:0;}
 /* icon-cluster spacing shared by every top-bar so it can never drift out of sync between
    screens — was a 6px gap repeated inline per screen, tight enough to feel cramped */
 .top-bar-icons{display:flex;gap:10px;}
@@ -153,7 +159,8 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .big-btn:active{transform:translateY(5px);box-shadow:0 1px 0 #B85A1E;}
 .big-btn.purple{background:linear-gradient(180deg,var(--purple),#6E4FB0);box-shadow:0 6px 0 #5A3D93;}
 .big-btn.teal{background:linear-gradient(180deg,#4FB6D1,#2E8AA3);box-shadow:0 6px 0 #256D80;}
-.big-btn.small{font-size:15px;padding:9px 22px;margin-top:8px;box-shadow:0 4px 0 #B85A1E;}
+.big-btn.small{font-size:15px;padding:9px 22px;margin-top:8px;box-shadow:0 4px 0 #B85A1E;
+  min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
 .big-btn:disabled{opacity:.5;cursor:default;}
 
 .name-input{font-family:inherit;font-size:16px;font-weight:700;padding:9px 16px;border-radius:14px;
@@ -237,7 +244,7 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .question-box.op-div{border-top-color:#4FB6D1;}
 .prompt{font-size:16px;font-weight:700;margin-bottom:4px;}
 .level-chip{display:inline-block;background:var(--sky2);border-radius:999px;padding:3px 10px;font-size:12px;
-  font-weight:700;color:#2E8AA3;margin-bottom:6px;}
+  font-weight:700;color:var(--level-chip-text);margin-bottom:6px;}
 .difficulty-meter{display:flex;gap:3px;justify-content:center;margin-bottom:6px;}
 .difficulty-meter span{width:9px;height:9px;border-radius:50%;background:var(--track-bg);}
 .difficulty-meter span.filled{background:var(--carrot);}
@@ -246,6 +253,11 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .equation{font-size:clamp(28px,7.5vw,40px);font-weight:800;margin:4px 0;display:flex;
   align-items:center;justify-content:center;gap:8px;min-height:56px;}
 .flash-big{font-size:clamp(38px,11vw,58px);font-weight:800;animation:flashPop .25s ease;}
+/* teacher-stage's idle/status sentences ("Press New Problem", "Ready — press Show Next")
+   used .flash-big too, sized for a single flashed digit — at that size the longer sentences
+   wrapped to 2-3 lines and blew the sticky panel's height budget out. Same weight and pop-in
+   animation, just sized for a short sentence instead of one number. */
+.flash-status{font-size:clamp(20px,5.5vw,26px);font-weight:800;animation:flashPop .25s ease;}
 @keyframes flashPop{0%{transform:scale(.7);opacity:0;}100%{transform:scale(1);opacity:1;}}
 .flash-hint{font-size:13px;color:var(--text-muted);font-weight:700;margin-top:4px;}
 .replay-btn{background:var(--surface);border:2px solid var(--purple);color:var(--purple);border-radius:12px;
@@ -321,6 +333,10 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .overlay-card .em{font-size:54px;}
 .hidden{display:none !important;}
 
+/* The tiles already carry a lock/pointer/check glyph per state (see skill-node-tile below),
+   but at a glance on a phone those read as decoration, not status — this line spells out
+   what they mean once, instead of asking a child to tap around to find out. */
+.skillmap-legend{font-size:13px;font-weight:700;color:var(--text-muted);text-align:center;margin-top:4px;}
 .skillmap{display:flex;flex-direction:column;gap:10px;width:100%;max-width:420px;margin-top:8px;z-index:5;}
 /* .screen is itself a column flex container, and this element's JS-computed inline height
    (tall enough to hold the whole winding path) made it a flex item the default flex-shrink:1
@@ -448,8 +464,9 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
 </head>
 <body>
 <div id="app">
-  <div class="ground" id="city-ground"></div>
+  <div class="ground" id="city-ground" aria-hidden="true"></div>
 
+  <main id="app-main">
   <!-- START -->
   <section class="screen active" id="screen-start">
     <div class="top-bar">
@@ -464,8 +481,8 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
     <h1 data-i18n="appTitle">Mind Math Heroes</h1>
     <div class="subtitle" data-i18n="appSubtitle">Train your brain — the hero way!</div>
     <div class="mascot" id="mascot-start">🦸</div>
-    <label class="sr-only" for="input-childname" data-i18n="yourName">Your name</label>
-    <input class="name-input" id="input-childname" placeholder="Your name" maxlength="20" data-i18n-placeholder="yourName">
+    <label class="sr-only" for="input-childname" data-i18n="yourName">Your name (optional)</label>
+    <input class="name-input" id="input-childname" placeholder="Your name (optional)" maxlength="20" data-i18n-placeholder="yourName">
     <div class="badges-row" id="streak-badge"></div>
     <div class="hidden" id="resume-banner" style="width:100%;max-width:320px;background:var(--surface);border:3px solid var(--berry);
       border-radius:16px;padding:10px 14px;margin-top:8px;z-index:5;">
@@ -535,6 +552,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       </div>
     </div>
     <h2 style="margin-top:6px;" data-i18n="yourLevelPath">Your Level Path</h2>
+    <div class="skillmap-legend" data-i18n="skillMapLegend">🔒 Locked  ·  👉 Up next  ·  ✅ Done</div>
     <div class="skillmap" id="skillmap-list"></div>
   </section>
 
@@ -661,7 +679,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
           <select class="big-select" id="teacher-level-select"></select>
           <button class="big-btn small" id="btn-teacher-new" style="margin-top:0;" data-i18n="newProblem">🎲 New Problem</button>
         </div>
-        <div class="teacher-stage" id="teacher-stage"><span class="flash-big" style="color:#FFE9B0;" data-i18n="pressNewProblem">Press "New Problem"</span></div>
+        <div class="teacher-stage" id="teacher-stage"><span class="flash-status" style="color:#FFE9B0;" data-i18n="pressNewProblem">Press "New Problem"</span></div>
         <div class="teacher-row">
           <button class="big-btn small" id="btn-teacher-next" style="margin-top:0;" data-i18n="showNext">▶️ Show Next</button>
           <button class="big-btn purple small" id="btn-teacher-answer" style="margin-top:0;" data-i18n="revealAnswer">✅ Reveal Answer</button>
@@ -684,6 +702,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       </div>
     </div>
   </section>
+  </main>
 
   <!-- BREAK OVERLAY -->
   <div class="overlay hidden" id="break-overlay" role="alertdialog" aria-modal="true" aria-labelledby="break-overlay-heading">
@@ -780,7 +799,7 @@ if(document.fonts && document.fonts.ready){
 const STRINGS = {
 en: {
   appTitle:'Mind Math Heroes', appSubtitle:'Train your brain — the hero way!',
-  yourName:'Your name', resumeDefault:'Continue where you left off?', resumeBtn:'▶️ Resume', startFresh:'Start Fresh',
+  yourName:'Your name (optional)', resumeDefault:'Continue where you left off?', resumeBtn:'▶️ Resume', startFresh:'Start Fresh',
   langToggleLabel:'Switch language', parentGateLabel:'Parent settings', backHome:'Back to home', teacherLevelLabel:'Level to present',
   langLabelShort:'Lang', homeLabelShort:'Home', gateLabelShort:'Parents', themeLabelShort:'Theme', muteLabelShort:'Sound',
   muteLabel:'Mute sound', unmuteLabel:'Unmute sound', darkThemeLabel:'Switch to dark theme', lightThemeLabel:'Switch to light theme',
@@ -796,6 +815,7 @@ en: {
   play:'Play!', chooseHero:'Choose Your Hero', teacherModeBtn:'👩\u200d🏫 Teacher Mode',
   tabHeroes:'🦸 Heroes', tabGear:'🎒 Gear', pickHero:'Pick Your Hero', heroShop:'Hero Shop', spendCoins:'Spend coins on cool gear!',
   chooseMission:'Choose a Mission', myLevelPath:'My Level Path', yourLevelPath:'Your Level Path',
+  skillMapLegend:'🔒 Locked  ·  👉 Up next  ·  ✅ Done',
   abacusLabTitle:'Abacus Lab', abacusLabSub:'Say a number, or tap the beads!',
   nextLevel:'Next Level ▶️', levelMap:'🗺️ Level Map', nextMission:'Next Mission', getCertificate:'🏆 Get Certificate',
   certTitle:'Certificate of Math Heroism', certifiesThat:'This certifies that', printBtn:'🖨️ Print', backBtn:'Back',
@@ -874,7 +894,7 @@ en: {
 },
 ar: {
   appTitle:'أبطال الحساب الذهني', appSubtitle:'درّب عقلك — بطريقة الأبطال!',
-  yourName:'اسمك', resumeDefault:'تكمل من حيث وقفت؟', resumeBtn:'▶️ كمّل', startFresh:'ابدأ من جديد',
+  yourName:'اسمك (اختياري)', resumeDefault:'تكمل من حيث وقفت؟', resumeBtn:'▶️ كمّل', startFresh:'ابدأ من جديد',
   langToggleLabel:'تغيير اللغة', parentGateLabel:'إعدادات الوالدين', backHome:'العودة للرئيسية', teacherLevelLabel:'المستوى المعروض',
   langLabelShort:'اللغة', homeLabelShort:'الرئيسية', gateLabelShort:'الوالدين', themeLabelShort:'المظهر', muteLabelShort:'الصوت',
   muteLabel:'كتم الصوت', unmuteLabel:'تشغيل الصوت', darkThemeLabel:'التحويل للوضع الليلي', lightThemeLabel:'التحويل للوضع النهاري',
@@ -890,6 +910,7 @@ ar: {
   play:'العب!', chooseHero:'اختر بطلك', teacherModeBtn:'👩\u200d🏫 وضع المعلم',
   tabHeroes:'🦸 الأبطال', tabGear:'🎒 المستلزمات', pickHero:'اختر بطلك', heroShop:'متجر الأبطال', spendCoins:'اصرف عملاتك على مستلزمات رائعة!',
   chooseMission:'اختر مهمة', myLevelPath:'مسار مستوياتي', yourLevelPath:'مسار مستوياتك',
+  skillMapLegend:'🔒 مقفل  ·  👉 التالي  ·  ✅ تم',
   abacusLabTitle:'معمل العداد', abacusLabSub:'قل رقماً أو المس الخرزات!',
   nextLevel:'المستوى التالي ▶️', levelMap:'🗺️ خريطة المستويات', nextMission:'مهمة تالية', getCertificate:'🏆 احصل على الشهادة',
   certTitle:'شهادة بطولة الحساب', certifiesThat:'تشهد هذه الشهادة بأن', printBtn:'🖨️ طباعة', backBtn:'رجوع',
@@ -1037,9 +1058,15 @@ function speak(text){
 }
 
 /* ---- mute toggle: affects tones + TTS everywhere, persisted in state ---- */
+// Lang/home glyphs don't change with state, so this only needs to run once at load —
+// unlike renderMuteButtons/applyTheme, which re-render on every toggle.
+function renderStaticIcons(){
+  document.querySelectorAll('.btn-lang-toggle').forEach(btn=> btn.innerHTML = ICON_SVG.globe);
+  document.querySelectorAll('[data-i18n-aria="backHome"]').forEach(btn=> btn.innerHTML = ICON_SVG.home);
+}
 function renderMuteButtons(){
   document.querySelectorAll('.btn-mute-toggle').forEach(btn=>{
-    btn.textContent = state.muted ? '🔇' : '🔊';
+    btn.innerHTML = state.muted ? ICON_SVG.speakerMuted : ICON_SVG.speakerOn;
     btn.classList.toggle('on', state.muted);
     btn.setAttribute('aria-label', t(state.muted ? 'unmuteLabel' : 'muteLabel'));
     btn.setAttribute('data-label', t('muteLabelShort'));
@@ -1056,7 +1083,7 @@ function toggleMute(){
 function applyTheme(){
   document.documentElement.setAttribute('data-theme', state.theme==='dark' ? 'dark' : 'light');
   document.querySelectorAll('.btn-theme-toggle').forEach(btn=>{
-    btn.textContent = state.theme==='dark' ? '☀️' : '🌙';
+    btn.innerHTML = state.theme==='dark' ? ICON_SVG.sun : ICON_SVG.moon;
     btn.setAttribute('aria-label', t(state.theme==='dark' ? 'lightThemeLabel' : 'darkThemeLabel'));
     btn.setAttribute('data-label', t('themeLabelShort'));
   });
@@ -1204,6 +1231,18 @@ function charName(c){ return t(c.nameKey); }
 // shared with the top-bar pill markup — see the .coin-icon CSS comment for why this replaced
 // the 🪙 emoji (unreliable emoji-font fallback rendered as a flat black coin on some devices)
 const COIN_ICON_SVG = '<svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg>';
+// Same reasoning as COIN_ICON_SVG: theme/sound/language/home glyphs are interaction-critical,
+// not decorative, so they shouldn't depend on a device's emoji-font coverage. Each button that
+// uses these already carries a real aria-label (set separately via data-i18n-aria), so these
+// SVGs stay aria-hidden — they're the visible glyph, not the accessible name.
+const ICON_SVG = {
+  moon:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+  sun:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>',
+  speakerOn:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.2L12 18.3V5.7L7.2 9.5H4z"/><path d="M16.2 9.2a4 4 0 0 1 0 5.6M18.8 6.6a7.8 7.8 0 0 1 0 10.8"/></svg>',
+  speakerMuted:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.2L12 18.3V5.7L7.2 9.5H4z"/><path d="M15.8 10.2l4.4 3.6M20.2 10.2l-4.4 3.6"/></svg>',
+  globe:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.5 4 5.6 4 9s-1.4 6.5-4 9c-2.6-2.5-4-5.6-4-9s1.4-6.5 4-9z"/></svg>',
+  home:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-6h4v6"/></svg>'
+};
 // 1 coin per correct answer, up to 25 questions a round — the old prices (5-12 coins, 61
 // total for the whole shop) meant a single strong round could nearly clear the shelf out.
 // Repriced so the first item takes a real round to afford and the full collection takes
@@ -1318,6 +1357,7 @@ async function loadState(){
   renderCharGrid();
   renderShop();
   renderMuteButtons();
+  renderStaticIcons();
   document.getElementById('input-childname').value = state.childName || '';
 }
 async function saveState(){
@@ -1397,9 +1437,22 @@ document.querySelectorAll('.btn-mute-toggle').forEach(btn=> btn.addEventListener
 document.getElementById('btn-theme-toggle').addEventListener('click', toggleTheme);
 
 /* ================= NAV ================= */
+// Screen changes act like route changes: move focus to the destination so keyboard/
+// screen-reader users land somewhere meaningful instead of on a now-hidden control.
+// Prefer the screen's own heading (assistive tech announces its text on focus); fall
+// back to the screen container itself when a screen has no heading (e.g. gameplay,
+// which orients around the level chip/prompt instead of a static title).
+function moveFocusToScreen(scr){
+  let target = scr.querySelector('h1, h2');
+  if(!target) target = scr;
+  if(!target.hasAttribute('tabindex')) target.setAttribute('tabindex','-1');
+  target.focus({preventScroll:true});
+}
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const scr = document.getElementById(id);
+  scr.classList.add('active');
+  moveFocusToScreen(scr);
 }
 function bounce(id){ const m=document.getElementById(id); m.classList.remove('happy'); void m.offsetWidth; m.classList.add('happy'); }
 
@@ -2950,7 +3003,7 @@ document.getElementById('btn-teacher-new').addEventListener('click', ()=>{
   const levelIdx = parseInt(document.getElementById('teacher-level-select').value,10) || 1;
   teacherQuestion = buildSequenceQuestion(levelIdx);
   teacherStepIdx = 0;
-  document.getElementById('teacher-stage').innerHTML = '<span class="flash-big" style="color:#FFE9B0;">'+t('teacherReadyPress')+'</span>';
+  document.getElementById('teacher-stage').innerHTML = '<span class="flash-status" style="color:#FFE9B0;">'+t('teacherReadyPress')+'</span>';
   const panel = document.getElementById('teacher-abacus-panel');
   if(!panel.classList.contains('hidden')){
     panel.innerHTML='';

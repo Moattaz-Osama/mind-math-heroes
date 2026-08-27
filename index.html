@@ -24,7 +24,11 @@
   --purple:#8E6FD6; --white:#FFFFFF;
   --bg1:#7FCBEF; --bg2:var(--sky); --bg3:var(--sky2); --bg4:#EAF7FF;
   --surface:#FFFFFF; --text-muted:#7a5a45; --track-bg:#eee; --border-soft:#eee;
-  --surface-translucent:rgba(255,255,255,.6);
+  /* the sticky top-bar (and the sticky tab row / teacher controls that reuse this) used to be
+     see-through enough that scrolled-under text read as a blurry, half-legible smudge instead
+     of being cleanly hidden — bumped near-opaque so anything sliding underneath just disappears
+     behind it, the way a solid header would, while keeping a hint of the blurred-glass look. */
+  --surface-translucent:rgba(255,255,255,.96);
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
   --ease-out: cubic-bezier(.16,1,.3,1);
 }
@@ -33,7 +37,7 @@
   --brown:#EDE7FF; --purple:#B49CFF;
   --bg1:#0E1730; --bg2:#161F3D; --bg3:#1E2A4A; --bg4:#10182E;
   --surface:#232C4E; --text-muted:#C9BEFF; --track-bg:#33406b; --border-soft:#3A487A;
-  --surface-translucent:rgba(35,44,78,.65);
+  --surface-translucent:rgba(35,44,78,.96);
 }
 :root[data-theme="dark"] .tab-btn.active{background:#3A2F5E;}
 :root[data-theme="dark"] .char-card.selected,
@@ -195,10 +199,24 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .shop-item .emoji svg{width:100%;height:100%;display:block;}
 .shop-item .name-txt{font-size:13px;font-weight:700;line-height:1.25;min-height:32px;display:flex;align-items:center;justify-content:center;margin-top:4px;}
 .shop-item .price{font-size:13px;font-weight:700;color:var(--carrot);}
-.shop-item button{margin-top:6px;font-size:12.5px;padding:6px 10px;border-radius:10px;border:none;
+.shop-item button{display:block;width:100%;margin-top:6px;font-size:12.5px;padding:6px 10px;border-radius:10px;border:none;
   background:var(--grass-dark);color:#fff;font-weight:700;cursor:pointer;}
-.shop-item button:disabled{background:#ccc;}
+.shop-item button:disabled{background:#ccc;color:#888;cursor:default;}
 .shop-item.owned{border-color:var(--grass-dark);background:#F0FFE0;}
+/* the upgrade tier is a second coin sink on an already-owned item — a distinct gold button
+   (vs. the green buy/equip actions) signals "premium, optional, costs more" at a glance */
+.shop-item .btn-upgrade{background:linear-gradient(180deg,var(--sun),#E8A93B);color:var(--brown);}
+.shop-item .btn-upgrade:disabled{background:#ddd;color:#999;}
+.shop-item.upgraded{border-color:var(--sun);box-shadow:0 4px 0 rgba(0,0,0,.06),0 0 0 3px rgba(255,217,61,.35);}
+.shop-item .upgraded-tag{color:#C98A24;}
+:root[data-theme="dark"] .shop-item .upgraded-tag{color:#FFE79A;}
+/* upgraded gear gets a pulsing golden glow instead of new hand-drawn art — applies wherever
+   the mascot renders (start/game/reward/shop preview) and to the shop's own item icon */
+.gear-upgraded{animation:gearGlow 1.8s ease-in-out infinite;}
+@keyframes gearGlow{
+  0%,100%{ filter:drop-shadow(0 0 2px #FFD93D); }
+  50%{ filter:drop-shadow(0 0 7px #FFD93D) drop-shadow(0 0 11px #FFE79A); }
+}
 
 .progress{display:flex;flex-direction:column;align-items:center;gap:2px;margin:6px 0 2px;z-index:5;}
 .dot{width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--carrot);}
@@ -296,20 +314,32 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .hidden{display:none !important;}
 
 .skillmap{display:flex;flex-direction:column;gap:10px;width:100%;max-width:420px;margin-top:8px;z-index:5;}
-.skillmap-path{position:relative;width:100%;max-width:340px;margin:8px auto 0;z-index:5;}
+/* .screen is itself a column flex container, and this element's JS-computed inline height
+   (tall enough to hold the whole winding path) made it a flex item the default flex-shrink:1
+   was free to compress down to whatever fit the viewport — its absolutely-positioned node
+   children don't shrink with it (they keep their real pixel positions), so .screen's own
+   scrollHeight ended up based on the SHRUNK box, capping scroll short of the path's true
+   length. The last node then had nowhere left to scroll to except straight into the fixed
+   ground/skyline decoration at the bottom of the screen. flex-shrink:0 makes the explicit
+   height authoritative again, so .screen can actually scroll far enough to clear it. */
+.skillmap-path{position:relative;width:100%;max-width:340px;margin:8px auto 0;z-index:5;flex-shrink:0;}
 .skill-node-wrap{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;
-  align-items:center;width:100px;z-index:1;}
-.skill-node-circle{width:56px;height:56px;border-radius:50%;background:var(--surface);
-  border:3px solid var(--border-soft);font-size:20px;font-weight:800;display:flex;align-items:center;
-  justify-content:center;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.1);transition:transform .08s;}
-.skill-node-circle:active{transform:scale(.94);}
-.skill-node-circle.current{border-color:var(--carrot);box-shadow:0 4px 0 rgba(0,0,0,.1),0 0 0 5px rgba(255,140,66,.22);}
-.skill-node-circle.completed{border-color:var(--grass-dark);background:#F0FFE0;}
-:root[data-theme="dark"] .skill-node-circle.completed{background:#1F3A2E;}
-.skill-node-circle.locked{opacity:.5;cursor:default;}
-.skill-node-circle:disabled{cursor:default;}
+  align-items:center;width:106px;z-index:1;}
+/* rounded-square "tile" instead of a plain circle — sits on the colored road like a board-game
+   space, and matches the app's own rounded-rect language (cards, shop items) rather than the
+   circle used nowhere else in the UI */
+.skill-node-tile{width:62px;height:62px;border-radius:20px;background:var(--surface);
+  border:3px solid var(--border-soft);font-size:22px;font-weight:800;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.18);transition:transform .08s;}
+.skill-node-tile:active{transform:scale(.94);}
+.skill-node-tile.current{border-color:var(--carrot);box-shadow:0 4px 0 rgba(0,0,0,.18),0 0 0 5px rgba(255,140,66,.3);}
+.skill-node-tile.completed{border-color:var(--grass-dark);background:#F0FFE0;}
+:root[data-theme="dark"] .skill-node-tile.completed{background:#1F3A2E;}
+.skill-node-tile.locked{opacity:.65;cursor:default;}
+.skill-node-tile:disabled{cursor:default;}
 .skill-node-label{font-size:10.5px;font-weight:700;text-align:center;margin-top:4px;line-height:1.2;
-  color:var(--brown);background:var(--surface);padding:2px 6px;border-radius:8px;max-width:96px;}
+  color:var(--brown);background:var(--surface);padding:2px 6px;border-radius:8px;max-width:100px;
+  box-shadow:0 2px 0 rgba(0,0,0,.06);}
 .skill-node-stars{font-size:12px;margin-top:2px;}
 .skill-node-cert-btn{margin-top:3px;font-size:13px;line-height:1;background:var(--surface);
   border:2px solid var(--sun);border-radius:999px;padding:2px 8px;cursor:pointer;position:relative;}
@@ -453,6 +483,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div class="subtitle" data-i18n="spendCoins">Spend coins on cool gear!</div>
       <div class="shop-preview-wrap"><div class="mascot" id="mascot-shop">🦸</div></div>
       <div class="shop-grid" id="shop-grid"></div>
+      <div class="feedback" id="gear-feedback" aria-live="polite" aria-atomic="true"></div>
     </div>
   </section>
 
@@ -773,7 +804,7 @@ en: {
   questionOf:'Question {n} of {t}', levelChip:'Level {n}: {name}', levelChipDefault:'Level 1',
   awesomeFeedback:'Awesome! 🌟', greatJobFeedback:'Great job! 🎉', gotItFeedback:'You got it! 💪', superFeedback:'Super! ✨',
   nailedItFeedback:'Nailed it! 🙌', brilliantFeedback:'Brilliant! 🌈', tryAgainFeedback:'So close! Try again 🐾',
-  noWorriesFeedback:'No worries, next question! 💛', timesUpFeedback:"Time's up! Let's try the next one.",
+  timesUpFeedback:"Time's up! Let's try the next one.",
   answerIsFeedback:'The answer is {a}! 💡', voiceUnsupported:'Voice input not supported on this device.',
   voiceListening:'🎙️ Listening...', voiceDidntCatch:"Didn't catch that, try tapping!", voiceHeard:'I heard {n} — try again!',
   voiceHiccup:'Voice hiccup, try again!',
@@ -798,6 +829,9 @@ en: {
   dailyDoneHeading:"Today's mission is done!", dailyDoneText:'Great job! Come back tomorrow for a new one.',
   gateWrongFeedback:'Not quite — try again.',
   buyBtn:'Buy', wearBtn:'Wear', equippedBtn:'Equipped', ownedLabel:'Owned',
+  gearMaxEquipped:"That's the most you can wear at once! Take something off first. 🎒",
+  gearBoughtNotWorn:"Bought it! You're already wearing the max — tap Wear once you take something off.",
+  upgradeBtn:'⬆️ Upgrade', upgradedLabel:'✨ Upgraded',
   dashChildName:'Child name', dashQuestionsAnswered:'Total questions answered', dashAccuracy:'Overall accuracy',
   dashStreak:'Current streak', dashCoins:'Total coins earned', dashJourney:'Hero Journey progress',
   dashJourneyVal:'Level {n} unlocked · {c}/{total} levels completed', dashPractice:'Practice difficulty (Speed/Free/Daily)',
@@ -864,7 +898,7 @@ ar: {
   questionOf:'السؤال {n} من {t}', levelChip:'المستوى {n}: {name}', levelChipDefault:'المستوى 1',
   awesomeFeedback:'رائع! 🌟', greatJobFeedback:'أحسنت! 🎉', gotItFeedback:'عرفتها! 💪', superFeedback:'ممتاز! ✨',
   nailedItFeedback:'بالضبط! 🙌', brilliantFeedback:'عبقري! 🌈', tryAgainFeedback:'قريب جداً! حاول مرة أخرى 🐾',
-  noWorriesFeedback:'ولا يهمك، السؤال التالي! 💛', timesUpFeedback:'انتهى الوقت! لنجرب التالي.',
+  timesUpFeedback:'انتهى الوقت! لنجرب التالي.',
   answerIsFeedback:'الإجابة هي {a}! 💡', voiceUnsupported:'الإدخال الصوتي غير مدعوم على هذا الجهاز.',
   voiceListening:'🎙️ أستمع...', voiceDidntCatch:'لم أسمعك، جرب اللمس!', voiceHeard:'سمعت {n} — حاول مرة أخرى!',
   voiceHiccup:'مشكلة بالصوت، حاول مرة أخرى!',
@@ -889,6 +923,9 @@ ar: {
   dailyDoneHeading:'مهمة اليوم اكتملت!', dailyDoneText:'أحسنت! عد غداً لمهمة جديدة.',
   gateWrongFeedback:'ليست صحيحة تماماً — حاول مرة أخرى.',
   buyBtn:'اشترِ', wearBtn:'ارتدِ', equippedBtn:'مرتدى', ownedLabel:'مملوك',
+  gearMaxEquipped:'وصلت للحد الأقصى! اخلع شيئاً أولاً. 🎒',
+  gearBoughtNotWorn:'تم الشراء! أنت ترتدي الحد الأقصى الآن — اضغط "ارتدِ" بعد أن تخلع شيئاً.',
+  upgradeBtn:'⬆️ ترقية', upgradedLabel:'✨ مطوّر',
   dashChildName:'اسم الطفل', dashQuestionsAnswered:'إجمالي الأسئلة المجابة', dashAccuracy:'الدقة الإجمالية',
   dashStreak:'التتابع الحالي', dashCoins:'إجمالي العملات المكتسبة', dashJourney:'تقدم رحلة البطل',
   dashJourneyVal:'المستوى {n} مفتوح · {c}/{total} مستويات مكتملة', dashPractice:'مستوى التمرين (سرعة/حر/يومي)',
@@ -1147,16 +1184,29 @@ const CHARACTERS = [
   {id:'petal', name:'Blossom Star', nameKey:'charPetal'}
 ];
 function charName(c){ return t(c.nameKey); }
+// 1 coin per correct answer, up to 25 questions a round — the old prices (5-12 coins, 61
+// total for the whole shop) meant a single strong round could nearly clear the shelf out.
+// Repriced so the first item takes a real round to afford and the full collection takes
+// sustained play across sessions, not one sitting; ordered so simple accessories are the
+// early wins and the crown is the standing long-term goal.
+// upgradePrice (~1.6-1.75x the base) is a second coin sink for once an item is already owned —
+// without it, coins become a dead-end currency the moment the shop is cleared out. Paying it
+// unlocks the .gear-upgraded glow treatment (see mascotSvgMarkup) on that item, everywhere the
+// mascot renders — a lasting, visible payoff for the higher price, not just a bigger number.
 const SHOP_ITEMS = [
-  {id:'crown', name:'Golden Crown', nameKey:'gearCrown', price:12},
-  {id:'pendant', name:'Magic Gem', nameKey:'gearPendant', price:8},
-  {id:'shoulder_star', name:'Victory Star', nameKey:'gearShoulderStar', price:6},
-  {id:'sparkles', name:'Magic Sparkles', nameKey:'gearSparkles', price:7},
-  {id:'cuffs', name:'Power Cuffs', nameKey:'gearCuffs', price:5},
-  {id:'belt_badge', name:'Champion Belt', nameKey:'gearBelt', price:6},
-  {id:'boots', name:'Hero Boots', nameKey:'gearBoots', price:7},
-  {id:'wings', name:'Power Wings', nameKey:'gearWings', price:10}
+  {id:'cuffs', name:'Power Cuffs', nameKey:'gearCuffs', price:15, upgradePrice:25},
+  {id:'shoulder_star', name:'Victory Star', nameKey:'gearShoulderStar', price:20, upgradePrice:35},
+  {id:'belt_badge', name:'Champion Belt', nameKey:'gearBelt', price:25, upgradePrice:45},
+  {id:'sparkles', name:'Magic Sparkles', nameKey:'gearSparkles', price:30, upgradePrice:50},
+  {id:'boots', name:'Hero Boots', nameKey:'gearBoots', price:35, upgradePrice:60},
+  {id:'pendant', name:'Magic Gem', nameKey:'gearPendant', price:45, upgradePrice:80},
+  {id:'wings', name:'Power Wings', nameKey:'gearWings', price:60, upgradePrice:100},
+  {id:'crown', name:'Golden Crown', nameKey:'gearCrown', price:80, upgradePrice:140}
 ];
+// hand-placed SVG overlays have no collision handling, and wearing all 8 at once (every
+// head/neck/shoulder/wrist/waist/foot/back slot plus the ambient sparkles) turns the mascot
+// visually busy — half the collection is already a decorated hero, not a cluttered one.
+const MAX_EQUIPPED = 4;
 function gearName(it){ return t(it.nameKey); }
 
 const HERO_SVGS = {
@@ -1199,7 +1249,7 @@ function defaultSkillStats(){
 }
 
 let state = {
-  totalCarrots:0, character:'super', ownedItems:[], equippedItems:[],
+  totalCarrots:0, character:'super', ownedItems:[], equippedItems:[], upgradedItems:[],
   level:1, levelByMode:{free:1, speed:1, daily:1, weak:1},
   streakCount:0, lastPlayDate:null, childName:'', lang:'en',
   skillStats: defaultSkillStats(),
@@ -1229,6 +1279,7 @@ async function loadState(){
   if(!state.lang) state.lang = 'en';
   if(!CHARACTERS.find(c=>c.id===state.character)) state.character = 'super';
   if(!state.factStats) state.factStats = {};
+  if(!state.upgradedItems) state.upgradedItems = [];
   if(!state.achievements) state.achievements = {};
   if(!state.dailyLog) state.dailyLog = {};
   if(!state.theme) state.theme = 'light';
@@ -1394,9 +1445,16 @@ function heroSvgMarkup(characterId, viewBox){
   const inner = HERO_SVGS[characterId] || HERO_SVGS[CHARACTERS[0].id];
   return '<svg viewBox="'+(viewBox||'0 0 200 240')+'" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>';
 }
+// upgraded gear gets a pulsing golden glow wrapped around its existing artwork instead of a
+// second hand-drawn tier — same overlay, visibly "leveled up" wherever the mascot renders
+function gearOverlayMarkup(id){
+  const overlay = GEAR_OVERLAYS[id]||'';
+  const isUpgraded = state.upgradedItems && state.upgradedItems.includes(id);
+  return isUpgraded ? '<g class="gear-upgraded">'+overlay+'</g>' : overlay;
+}
 function mascotSvgMarkup(characterId, equippedIds){
   const inner = HERO_SVGS[characterId] || HERO_SVGS[CHARACTERS[0].id];
-  const gear = (equippedIds||[]).map(id => GEAR_OVERLAYS[id]||'').join('');
+  const gear = (equippedIds||[]).map(gearOverlayMarkup).join('');
   return '<svg viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg">'+inner+gear+'</svg>';
 }
 function renderCharGrid(){
@@ -1413,29 +1471,72 @@ function renderCharGrid(){
 }
 function renderShop(){
   const wrap = document.getElementById('shop-grid'); wrap.innerHTML='';
+  const feedback = document.getElementById('gear-feedback');
   SHOP_ITEMS.forEach(it=>{
     const owned = state.ownedItems.includes(it.id);
     const equipped = state.equippedItems.includes(it.id);
-    const iconSvg = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+(GEAR_ICONS[it.id]||'')+'</svg>';
+    const upgraded = state.upgradedItems.includes(it.id);
+    const iconSvg = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">'+
+      (upgraded ? '<g class="gear-upgraded">'+(GEAR_ICONS[it.id]||'')+'</g>' : (GEAR_ICONS[it.id]||''))+'</svg>';
+    const affordableBuy = !owned && state.totalCarrots >= it.price;
+    const affordableUpgrade = owned && !upgraded && state.totalCarrots >= it.upgradePrice;
+
     const d = document.createElement('div');
-    d.className = 'shop-item' + (owned?' owned':'');
-    d.innerHTML = '<div class="emoji">'+iconSvg+'</div><div class="name-txt">'+gearName(it)+'</div>'+
-      (owned ? '<div class="price">'+t('ownedLabel')+'</div>' : '<div class="price">🪙 '+it.price+'</div>')+
-      '<button>'+(owned ? (equipped?t('equippedBtn'):t('wearBtn')) : t('buyBtn'))+'</button>';
-    const btn = d.querySelector('button');
-    btn.addEventListener('click', ()=>{
-      if(!owned){
-        if(state.totalCarrots >= it.price){
-          state.totalCarrots -= it.price; state.ownedItems.push(it.id);
-          state.equippedItems.push(it.id);
-          playUnlock(); saveState(); renderCarrots(); renderShop(); updateMascots();
-        }
-      } else {
-        if(state.equippedItems.includes(it.id)) state.equippedItems = state.equippedItems.filter(x=>x!==it.id);
-        else state.equippedItems.push(it.id);
-        saveState(); renderShop(); updateMascots();
+    d.className = 'shop-item' + (owned?' owned':'') + (upgraded?' upgraded':'');
+
+    let statusHtml;
+    if(!owned) statusHtml = '<div class="price">🪙 '+it.price+'</div>';
+    else if(upgraded) statusHtml = '<div class="price upgraded-tag">'+t('upgradedLabel')+'</div>';
+    else statusHtml = '<div class="price">'+t('ownedLabel')+'</div>';
+
+    let buttonsHtml;
+    if(!owned){
+      buttonsHtml = '<button class="btn-buy"'+(affordableBuy?'':' disabled')+'>'+t('buyBtn')+'</button>';
+    } else {
+      buttonsHtml = '<button class="btn-equip">'+(equipped?t('equippedBtn'):t('wearBtn'))+'</button>';
+      if(!upgraded){
+        buttonsHtml += '<button class="btn-upgrade"'+(affordableUpgrade?'':' disabled')+'>'+t('upgradeBtn')+' 🪙'+it.upgradePrice+'</button>';
+      }
+    }
+
+    d.innerHTML = '<div class="emoji">'+iconSvg+'</div><div class="name-txt">'+gearName(it)+'</div>'+statusHtml+buttonsHtml;
+
+    const buyBtn = d.querySelector('.btn-buy');
+    if(buyBtn) buyBtn.addEventListener('click', ()=>{
+      if(state.totalCarrots >= it.price){
+        state.totalCarrots -= it.price; state.ownedItems.push(it.id);
+        const atCap = state.equippedItems.length >= MAX_EQUIPPED;
+        if(atCap){ feedback.textContent = t('gearBoughtNotWorn'); }
+        else { state.equippedItems.push(it.id); feedback.textContent = ''; }
+        playUnlock(); saveState(); renderCarrots(); renderShop(); updateMascots();
       }
     });
+
+    const equipBtn = d.querySelector('.btn-equip');
+    if(equipBtn) equipBtn.addEventListener('click', ()=>{
+      if(state.equippedItems.includes(it.id)){
+        state.equippedItems = state.equippedItems.filter(x=>x!==it.id);
+        feedback.textContent = '';
+      } else if(state.equippedItems.length >= MAX_EQUIPPED){
+        feedback.textContent = t('gearMaxEquipped');
+        return; // leave it un-equipped — don't touch state/re-render for a no-op action
+      } else {
+        state.equippedItems.push(it.id);
+        feedback.textContent = '';
+      }
+      saveState(); renderShop(); updateMascots();
+    });
+
+    const upgradeBtn = d.querySelector('.btn-upgrade');
+    if(upgradeBtn) upgradeBtn.addEventListener('click', ()=>{
+      if(state.totalCarrots >= it.upgradePrice){
+        state.totalCarrots -= it.upgradePrice;
+        state.upgradedItems.push(it.id);
+        feedback.textContent = '';
+        playUnlock(); saveState(); renderCarrots(); renderShop(); updateMascots();
+      }
+    });
+
     wrap.appendChild(d);
   });
 }
@@ -2150,7 +2251,10 @@ function handleAnswer(isCorrect, btnEl, timedOut){
       // reveal the correct answer so the child actually learns it, rather than silently moving on
       const correctBtn = [...allBtns].find(b=> parseInt(b.textContent,10)===currentQuestion.answer);
       if(correctBtn) correctBtn.classList.add('correct');
-      feedback.textContent = t('answerIsFeedback',{a:currentQuestion.answer});
+      // running out of the clock isn't a wrong guess — the answer still gets revealed the same
+      // way (button highlight, abacus, speech below), but running out of time shouldn't read as
+      // the same size of failure as two actual wrong taps
+      feedback.textContent = timedOut ? t('timesUpFeedback') : t('answerIsFeedback',{a:currentQuestion.answer});
       speak((state.lang==='ar'?'الإجابة هي ':'The answer is ')+currentQuestion.answer);
       // after two misses, show the answer on real beads instead of just saying it out loud
       const abacusPanel = document.getElementById('abacus-panel');
@@ -2411,31 +2515,68 @@ document.getElementById('btn-lab-mic').addEventListener('click', function(){
 });
 
 /* ================= LEVEL PATH (skill map) ================= */
-/* Renders the levels as a winding hero-journey trail (à la a level-select map) instead of
-   a plain vertical list. Node x-positions follow a sine wave so the path automatically
-   winds nicely no matter how many levels get added later. */
+/* Renders the levels as a horizontal snake board-game path (à la a classic kids' board game) —
+   fixed number of COLS per row, alternating left-to-right / right-to-left like a snake, with a
+   thick colored "road" running through each row and curved connectors at the turns. Row/col
+   math (not a formula tied to a fixed level count) so the path keeps snaking correctly however
+   many levels get added later. */
+const SKILLMAP_COLS = 3;
+const SKILLMAP_ROAD_COLORS = ['var(--carrot)','var(--berry)','#4FB6D1','var(--purple)','var(--grass-dark)'];
 function renderSkillMap(){
   const wrap = document.getElementById('skillmap-list'); wrap.innerHTML='';
   wrap.classList.add('skillmap-path');
   const n = LEVELS.length;
-  const rowH = 108, padTop = 34, padBottom = 40;
-  const points = LEVELS.map((l,i)=> ({ x: 50 + Math.sin(i*1.05)*30, y: padTop + i*rowH }));
-  const totalH = padTop + (n-1)*rowH + padBottom;
+  const COLS = SKILLMAP_COLS;
+  // rowH has to clear a full tile's footprint below its road point — tile(62) + label(~24 incl.
+  // margin) + stars(~18) + the completed-level cert button(~25) is ~100px past the point — before
+  // the NEXT row's road band arrives. padBottom needs that same clearance for the very last row
+  // specifically: nothing follows it to absorb overflow, so on a short row count it used to spill
+  // straight past this container's bottom edge and into the fixed ground/skyline decoration
+  // underneath the screen (see the earlier flex-shrink/padBottom fix — same failure mode).
+  const rowH = 150, padTop = 44, padBottom = 130;
+  const isRTL = state.lang === 'ar';
+
+  const points = LEVELS.map((l,i)=>{
+    const row = Math.floor(i / COLS);
+    const numInRow = Math.min(COLS, n - row*COLS);
+    const colInRow = i % COLS;
+    const startCol = Math.floor((COLS - numInRow) / 2); // centers a short final row instead of hugging one edge
+    const reversed = row % 2 === 1; // snake: even rows run start→end, odd rows run end→start
+    const col = (reversed ? (numInRow - 1 - colInRow) : colInRow) + startCol;
+    let x = (col + 0.5) / COLS * 100;
+    if(isRTL) x = 100 - x; // mirror the whole snake so it still reads start-to-finish in RTL
+    return { x, y: padTop + row*rowH, row };
+  });
+  const rowCount = Math.ceil(n / COLS);
+  const totalH = padTop + (rowCount - 1)*rowH + padBottom;
   wrap.style.height = totalH+'px';
 
-  let d = '';
-  points.forEach((p,i)=>{
-    if(i===0) d += 'M '+p.x+' '+p.y;
-    else{
-      const prev = points[i-1], midY = (prev.y+p.y)/2;
-      d += ' C '+prev.x+' '+midY+', '+p.x+' '+midY+', '+p.x+' '+p.y;
+  const byRow = [];
+  points.forEach(p=>{ (byRow[p.row] = byRow[p.row] || []).push(p); });
+
+  let roadSvg = '';
+  byRow.forEach((rowPts, rIdx)=>{
+    const color = SKILLMAP_ROAD_COLORS[rIdx % SKILLMAP_ROAD_COLORS.length];
+    if(rowPts.length >= 2){
+      let d = 'M '+rowPts[0].x+' '+rowPts[0].y;
+      for(let k=1;k<rowPts.length;k++) d += ' L '+rowPts[k].x+' '+rowPts[k].y;
+      roadSvg += '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="54" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
+    } else {
+      // a lone final tile has no row of its own to travel along — a short stub keeps it from
+      // looking like it floats off the road entirely
+      const p0 = rowPts[0];
+      roadSvg += '<path d="M '+(p0.x-6)+' '+p0.y+' L '+(p0.x+6)+' '+p0.y+'" stroke="'+color+'" stroke-width="54" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
     }
   });
+  for(let r=0; r<byRow.length-1; r++){
+    const from = byRow[r][byRow[r].length-1], to = byRow[r+1][0];
+    const midY = (from.y+to.y)/2;
+    const d = 'M '+from.x+' '+from.y+' C '+from.x+' '+midY+', '+to.x+' '+midY+', '+to.x+' '+to.y;
+    roadSvg += '<path d="'+d+'" fill="none" stroke="'+SKILLMAP_ROAD_COLORS[(r+1)%SKILLMAP_ROAD_COLORS.length]+'" stroke-width="54" stroke-linecap="round" vector-effect="non-scaling-stroke"/>';
+  }
   wrap.insertAdjacentHTML('beforeend',
     '<svg viewBox="0 0 100 '+totalH+'" preserveAspectRatio="none" aria-hidden="true" '+
-    'style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;">'+
-    '<path d="'+d+'" fill="none" stroke="var(--border-soft)" stroke-width="3" stroke-dasharray="2 3" '+
-    'stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>');
+    'style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;">'+roadSvg+'</svg>');
 
   LEVELS.forEach((l,i)=>{
     const p = points[i];
@@ -2447,11 +2588,11 @@ function renderSkillMap(){
 
     const nodeWrap = document.createElement('div');
     nodeWrap.className = 'skill-node-wrap';
-    nodeWrap.style.left = p.x+'%'; nodeWrap.style.top = (p.y-28)+'px'; // -28 = half the circle's height, so the circle's own center lands on the path point, not the whole label stack
+    nodeWrap.style.left = p.x+'%'; nodeWrap.style.top = (p.y-31)+'px'; // -31 = half the tile's 62px height, so the tile's own center lands on the road point, not the whole label stack
 
     const circle = document.createElement('button');
     circle.type = 'button';
-    circle.className = 'skill-node-circle'+(isNext?' current':'')+(completed?' completed':'')+(locked?' locked':'');
+    circle.className = 'skill-node-tile'+(isNext?' current':'')+(completed?' completed':'')+(locked?' locked':'');
     circle.textContent = locked ? '🔒' : (isNext?'👉':(completed?'✅':String(l.id)));
     circle.setAttribute('aria-label', t('levelChip',{n:l.id,name:levelName(l)})+
       (locked ? ' — '+(isGateLevel?t('askGrownupToUnlock'):t('finishToUnlock',{n:l.id-1})) : ' — '+levelDesc(l)));

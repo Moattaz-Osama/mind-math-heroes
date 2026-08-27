@@ -161,8 +161,14 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .card .txt strong{display:block;font-size:18px;}
 .card .txt span{font-size:13px;color:var(--text-muted);font-weight:600;}
 
-.tab-row{display:flex;gap:8px;justify-content:center;z-index:5;margin-bottom:10px;}
-.tab-btn{font-family:inherit;font-size:15px;font-weight:700;padding:9px 18px;border-radius:14px;
+/* sticky for the same reason as .teacher-sticky below: scrolling the Gear tab's shop grid
+   (or a long Heroes grid) used to carry these tabs up underneath the app's own sticky
+   top-bar and out of reach, with no way to switch tabs again without scrolling back to the
+   very top first. top:74px matches the top-bar's own box model (10px+44px+20px). */
+.tab-row{display:flex;gap:8px;justify-content:center;z-index:5;margin-bottom:10px;
+  position:sticky;top:74px;width:100%;padding:8px 0;border-radius:14px;
+  background:var(--surface-translucent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+.tab-btn{font-family:inherit;font-size:15px;font-weight:700;padding:9px 18px;min-height:44px;border-radius:14px;
   border:3px solid var(--border-soft);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:transform .08s;}
 .tab-btn:active{transform:scale(.96);}
 .tab-btn.active{border-color:var(--carrot);background:#FFF3E6;color:var(--brown);}
@@ -217,7 +223,7 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 @keyframes flashPop{0%{transform:scale(.7);opacity:0;}100%{transform:scale(1);opacity:1;}}
 .flash-hint{font-size:13px;color:var(--text-muted);font-weight:700;margin-top:4px;}
 .replay-btn{background:var(--surface);border:2px solid var(--purple);color:var(--purple);border-radius:12px;
-  padding:5px 12px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;}
+  padding:5px 12px;min-height:44px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px;}
 .timer-row{display:flex;align-items:center;gap:8px;margin:6px 0;}
 .timer-bar-wrap{flex:1;height:10px;background:var(--track-bg);border-radius:6px;overflow:hidden;}
 .timer-bar{height:100%;background:var(--berry);width:100%;transition:width .1s linear,background-color .2s ease;}
@@ -238,7 +244,7 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .feedback{min-height:22px;font-weight:700;font-size:15px;margin-top:6px;}
 
 .tool-row{display:flex;gap:8px;justify-content:center;margin-top:8px;flex-wrap:wrap;}
-.tool-btn{background:#FFF3D6;border:2px solid var(--sun);border-radius:12px;padding:6px 10px;
+.tool-btn{background:#FFF3D6;border:2px solid var(--sun);border-radius:12px;padding:6px 10px;min-height:44px;
   font-size:13px;font-weight:700;cursor:pointer;}
 .tool-btn.on{background:var(--sun);animation:pulseGlow 1.2s ease-in-out infinite;}
 .tool-btn:disabled{opacity:.4;cursor:default;}
@@ -269,7 +275,7 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
   box-shadow:0 0 0 2px #FFE79A, 0 1px 3px rgba(0,0,0,.5);}
 .bead.dragging{transition:none;cursor:grabbing;}
 .digit-readout{font-weight:800;font-size:15px;margin-top:5px;color:#FFE9B0;}
-.rod-place{font-size:9px;color:#c9b592;margin-top:1px;}
+.rod-place{font-size:10px;color:#c9b592;margin-top:1px;}
 
 .stars-row{font-size:40px;margin:6px 0 10px;}
 .confetti{position:absolute;top:-40px;font-size:24px;z-index:30;animation-name:fall;animation-timing-function:ease-in;}
@@ -306,7 +312,12 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
   color:var(--brown);background:var(--surface);padding:2px 6px;border-radius:8px;max-width:96px;}
 .skill-node-stars{font-size:12px;margin-top:2px;}
 .skill-node-cert-btn{margin-top:3px;font-size:13px;line-height:1;background:var(--surface);
-  border:2px solid var(--sun);border-radius:999px;padding:2px 8px;cursor:pointer;}
+  border:2px solid var(--sun);border-radius:999px;padding:2px 8px;cursor:pointer;position:relative;}
+/* the visible pill stays small so the winding skill-map path doesn't have to make room for a
+   full 44px control at every node, but the actual hit area is expanded to meet it invisibly —
+   this was previously one of the smallest tap targets in the app despite sitting on a path
+   already packed with other 3px-apart interactive elements */
+.skill-node-cert-btn::before{content:'';position:absolute;inset:-14px;}
 .skill-node-cert-btn:active{transform:scale(.94);}
 .bar-bg{background:var(--track-bg);border-radius:8px;height:9px;width:100%;overflow:hidden;margin-top:3px;}
 .bar-fill{background:var(--grass-dark);height:100%;}
@@ -334,6 +345,15 @@ html[dir="rtl"] .cert-seal{right:auto;left:14px;}
 
 /* ---- teacher mode ---- */
 .teacher-panel{width:100%;max-width:520px;background:var(--surface);border-radius:20px;padding:16px;box-shadow:0 6px 0 rgba(0,0,0,.08);z-index:5;margin-top:6px;}
+/* Level select / New Problem / stage / Show Next / Reveal Answer are the controls a teacher
+   presses over and over through a live lesson — Class Tally sits below them and, once the
+   abacus panel is toggled on, needs scrolling to reach. Without this, that scroll carries
+   these controls up underneath the app's own sticky top-bar (74px = its own 10px+44px+20px
+   box model) and out of reach, with no scroll position that shows both at once. Pinning this
+   block right below the top-bar keeps the "what am I presenting" controls always reachable,
+   while only the supplementary abacus drawing and the tally itself scroll underneath. */
+.teacher-sticky{position:sticky;top:74px;z-index:4;margin:0 -16px;padding:0 16px 2px;
+  background:var(--surface-translucent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
 .teacher-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
 select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px 12px;border-radius:12px;border:3px solid var(--purple);}
 .teacher-stage{background:#2B2320;border-radius:16px;padding:24px 14px;min-height:110px;display:flex;
@@ -529,7 +549,6 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
     <button class="big-btn hidden" id="btn-next-level" data-i18n="nextLevel">Next Level ▶️</button>
     <button class="big-btn purple small hidden" id="btn-level-map" data-i18n="levelMap">🗺️ Level Map</button>
     <button class="big-btn" id="btn-reward-continue" data-i18n="nextMission">Next Mission</button>
-    <button class="big-btn purple small hidden" id="btn-print-cert" data-i18n="getCertificate">🏆 Get Certificate</button>
   </section>
 
   <!-- CERTIFICATE -->
@@ -558,6 +577,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <h2 data-i18n="grownupsOnly">Grown-ups only 🔒</h2>
       <div class="subtitle" id="gate-question">What is 7 + 6?</div>
       <div class="choices" id="gate-choices"></div>
+      <div class="feedback" id="gate-feedback" aria-live="polite" aria-atomic="true"></div>
       <button class="big-btn small" id="btn-gate-cancel" data-i18n="cancelBtn">Cancel</button>
     </div>
   </section>
@@ -587,15 +607,17 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
     <h2 style="margin-top:6px;" data-i18n="teacherModeTitle">Teacher / Presenter Mode</h2>
     <div class="subtitle" data-i18n="teacherModeSub">Full manual control — great for screen-sharing with a class.</div>
     <div class="teacher-panel">
-      <div class="teacher-row">
-        <label class="sr-only" for="teacher-level-select" data-i18n="teacherLevelLabel">Level to present</label>
-        <select class="big-select" id="teacher-level-select"></select>
-        <button class="big-btn small" id="btn-teacher-new" style="margin-top:0;" data-i18n="newProblem">🎲 New Problem</button>
-      </div>
-      <div class="teacher-stage" id="teacher-stage"><span class="flash-big" style="color:#FFE9B0;" data-i18n="pressNewProblem">Press "New Problem"</span></div>
-      <div class="teacher-row">
-        <button class="big-btn small" id="btn-teacher-next" style="margin-top:0;" data-i18n="showNext">▶️ Show Next</button>
-        <button class="big-btn purple small" id="btn-teacher-answer" style="margin-top:0;" data-i18n="revealAnswer">✅ Reveal Answer</button>
+      <div class="teacher-sticky">
+        <div class="teacher-row">
+          <label class="sr-only" for="teacher-level-select" data-i18n="teacherLevelLabel">Level to present</label>
+          <select class="big-select" id="teacher-level-select"></select>
+          <button class="big-btn small" id="btn-teacher-new" style="margin-top:0;" data-i18n="newProblem">🎲 New Problem</button>
+        </div>
+        <div class="teacher-stage" id="teacher-stage"><span class="flash-big" style="color:#FFE9B0;" data-i18n="pressNewProblem">Press "New Problem"</span></div>
+        <div class="teacher-row">
+          <button class="big-btn small" id="btn-teacher-next" style="margin-top:0;" data-i18n="showNext">▶️ Show Next</button>
+          <button class="big-btn purple small" id="btn-teacher-answer" style="margin-top:0;" data-i18n="revealAnswer">✅ Reveal Answer</button>
+        </div>
       </div>
       <div class="tool-row" style="margin-top:10px;">
         <button type="button" class="tool-btn" id="btn-teacher-abacus-toggle" data-i18n="showAbacus">🧮 Show Abacus</button>
@@ -658,6 +680,28 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
     </div>
   </div>
 
+  <!-- WEAK SPOTS EMPTY-STATE OVERLAY -->
+  <div class="overlay hidden" id="weakempty-overlay" role="alertdialog" aria-modal="true" aria-labelledby="weakempty-heading">
+    <div class="overlay-card">
+      <div class="em">🎯</div>
+      <h2 id="weakempty-heading" data-i18n="weakEmptyHeading">No weak spots yet!</h2>
+      <div class="subtitle" data-i18n="weakEmptyText">Play a few rounds first and we'll find the facts that trip you up.</div>
+      <button class="big-btn small" id="btn-weakempty-freeplay" data-i18n="weakEmptyCta">🎮 Free Play</button>
+      <button class="big-btn purple small" id="btn-weakempty-cancel" data-i18n="notNow">Not Now</button>
+    </div>
+  </div>
+
+  <!-- DAILY MISSION ALREADY-DONE OVERLAY -->
+  <div class="overlay hidden" id="dailydone-overlay" role="alertdialog" aria-modal="true" aria-labelledby="dailydone-heading">
+    <div class="overlay-card">
+      <div class="em">📅</div>
+      <h2 id="dailydone-heading" data-i18n="dailyDoneHeading">Today's mission is done!</h2>
+      <div class="subtitle" data-i18n="dailyDoneText">Great job! Come back tomorrow for a new one.</div>
+      <button class="big-btn small" id="btn-dailydone-freeplay" data-i18n="weakEmptyCta">🎮 Free Play</button>
+      <button class="big-btn purple small" id="btn-dailydone-close" data-i18n="niceBtn">Nice! ✨</button>
+    </div>
+  </div>
+
   <!-- PARENT UNLOCK OVERLAY -->
   <div class="overlay hidden" id="parentunlock-overlay" role="alertdialog" aria-modal="true" aria-labelledby="parentunlock-heading">
     <div class="overlay-card">
@@ -666,6 +710,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div class="subtitle" id="parentunlock-text" data-i18n="parentUnlockText">Levels 6-8 use bigger numbers. A grown-up can unlock them.</div>
       <div class="subtitle" id="parentunlock-question" style="font-weight:800;"></div>
       <div class="choices" id="parentunlock-choices"></div>
+      <div class="feedback" id="parentunlock-feedback" aria-live="polite" aria-atomic="true"></div>
       <button class="big-btn purple small" id="btn-parentunlock-cancel" data-i18n="notNow">Not Now</button>
     </div>
   </div>
@@ -749,6 +794,9 @@ en: {
   tutorial3Head:'Try the Abacus Helper', tutorial3Text:'Tap the "Helper" button anytime to see the numbers on a real abacus!',
   letsPlay:"Let's Play!",
   finishToUnlock:'Finish Level {n} to unlock', askGrownupToUnlock:'Ask a grown-up to unlock',
+  weakEmptyHeading:'No weak spots yet!', weakEmptyText:"Play a few rounds first and we'll find the facts that trip you up.", weakEmptyCta:'🎮 Free Play',
+  dailyDoneHeading:"Today's mission is done!", dailyDoneText:'Great job! Come back tomorrow for a new one.',
+  gateWrongFeedback:'Not quite — try again.',
   buyBtn:'Buy', wearBtn:'Wear', equippedBtn:'Equipped', ownedLabel:'Owned',
   dashChildName:'Child name', dashQuestionsAnswered:'Total questions answered', dashAccuracy:'Overall accuracy',
   dashStreak:'Current streak', dashCoins:'Total coins earned', dashJourney:'Hero Journey progress',
@@ -837,6 +885,9 @@ ar: {
   tutorial3Head:'جرب مساعد العداد', tutorial3Text:'اضغط زر "مساعد" في أي وقت لترى الأرقام على عداد حقيقي!',
   letsPlay:'يلا نلعب!',
   finishToUnlock:'أكمل المستوى {n} لفتحه', askGrownupToUnlock:'اسأل أحد الكبار لفتحه',
+  weakEmptyHeading:'لا توجد نقاط ضعف بعد!', weakEmptyText:'العب بضع جولات أولاً وسنكتشف الحقائق التي تصعب عليك.', weakEmptyCta:'🎮 لعب حر',
+  dailyDoneHeading:'مهمة اليوم اكتملت!', dailyDoneText:'أحسنت! عد غداً لمهمة جديدة.',
+  gateWrongFeedback:'ليست صحيحة تماماً — حاول مرة أخرى.',
   buyBtn:'اشترِ', wearBtn:'ارتدِ', equippedBtn:'مرتدى', ownedLabel:'مملوك',
   dashChildName:'اسم الطفل', dashQuestionsAnswered:'إجمالي الأسئلة المجابة', dashAccuracy:'الدقة الإجمالية',
   dashStreak:'التتابع الحالي', dashCoins:'إجمالي العملات المكتسبة', dashJourney:'تقدم رحلة البطل',
@@ -1157,10 +1208,14 @@ let state = {
   parentApprovedHighLevels:false, tutorialSeen:false,
   resume:null,
   muted:false, theme:'light',
-  factStats:{}, achievements:{}, dailyLog:{}
+  factStats:{}, achievements:{}, dailyLog:{}, dailyMissionDate:null
 };
 const PARENT_GATE_LEVEL = 6; // levels 6-8 need a grown-up to unlock
 const MINI_MISSION_SIZE = 5; // celebrate every 5 questions within a level
+// Free Play/Speed/Daily/Weak Spots drift their own difficulty independently of the Hero
+// Journey — without this cap that drift can climb straight past PARENT_GATE_LEVEL with no
+// grown-up ever consulted, defeating the one control the Parent Gate is supposed to give.
+function difficultyCeiling(){ return state.parentApprovedHighLevels ? LEVELS.length : PARENT_GATE_LEVEL - 1; }
 
 async function loadState(){
   try{
@@ -1309,8 +1364,29 @@ document.querySelectorAll('.card').forEach(c=>{
     const mode = c.dataset.mode;
     if(mode==='abacus'){ renderLabAbacus(); showScreen('screen-abacus-lab'); }
     else if(mode==='story'){ renderSkillMap(); showScreen('screen-skillmap'); }
+    // with no fact history yet, Weak Spots used to silently play exactly like Free Play at
+    // Level 1 — indistinguishable, with nothing telling the child (or parent) why "the facts
+    // that trip you up" mode looks like every other mode. Explain it instead of faking it.
+    else if(mode==='weak' && weakFactCount()===0){ document.getElementById('weakempty-overlay').classList.remove('hidden'); }
+    // "Daily Mission" implied a once-a-day cadence but had no gate at all — replayable back
+    // to back, any number of times, which can't do the return-driving job the name promises.
+    else if(mode==='daily' && state.dailyMissionDate===todayStr()){ document.getElementById('dailydone-overlay').classList.remove('hidden'); }
     else startGame(mode);
   });
+});
+document.getElementById('btn-weakempty-freeplay').addEventListener('click', ()=>{
+  document.getElementById('weakempty-overlay').classList.add('hidden');
+  startGame('free');
+});
+document.getElementById('btn-weakempty-cancel').addEventListener('click', ()=>{
+  document.getElementById('weakempty-overlay').classList.add('hidden');
+});
+document.getElementById('btn-dailydone-freeplay').addEventListener('click', ()=>{
+  document.getElementById('dailydone-overlay').classList.add('hidden');
+  startGame('free');
+});
+document.getElementById('btn-dailydone-close').addEventListener('click', ()=>{
+  document.getElementById('dailydone-overlay').classList.add('hidden');
 });
 
 /* ---- character select ---- */
@@ -1556,6 +1632,10 @@ function makeRodColumn(placeLabel, onChange){
 
   const heavenTrack = document.createElement('div'); heavenTrack.className='heaven-track';
   const heavenBead = document.createElement('div'); heavenBead.className='bead';
+  // beads used to be plain divs with only pointer listeners — unreachable by keyboard and
+  // silent to screen readers, so the abacus (all of Abacus Lab's content, plus the in-game
+  // and teacher Helper panels) was unusable without a mouse or touchscreen.
+  heavenBead.setAttribute('role','button'); heavenBead.tabIndex = 0;
   heavenTrack.appendChild(heavenBead);
 
   const bar = document.createElement('div'); bar.className='bar';
@@ -1564,11 +1644,22 @@ function makeRodColumn(placeLabel, onChange){
   const earthBeads = [];
   for(let i=0;i<4;i++){
     const b = document.createElement('div'); b.className='bead';
+    b.setAttribute('role','button'); b.tabIndex = 0;
     earthTrack.appendChild(b); earthBeads.push(b);
   }
   const placeEl = document.createElement('div'); placeEl.className='rod-place'; placeEl.textContent = placeLabel||'';
+  const place = placeLabel || 'ones';
 
   let heavenActive = false, earthCount = 0;
+
+  // keeps each bead's aria-label in sync with its state so a screen reader hears the actual
+  // value instead of nothing — called from render() so it can never go stale
+  function updateLabels(){
+    heavenBead.setAttribute('aria-label', place+' place, heaven bead worth 5, '+(heavenActive?'raised':'lowered')+' — press Enter to toggle');
+    earthBeads.forEach((b,i)=>{
+      b.setAttribute('aria-label', place+' place, earth bead '+(i+1)+' worth 1, '+(i<earthCount?'raised':'lowered')+' — press Enter to toggle');
+    });
+  }
 
   function render(){
     heavenBead.classList.toggle('active', heavenActive);
@@ -1581,15 +1672,20 @@ function makeRodColumn(placeLabel, onChange){
         : (EARTH_TRACK_H - BEAD_HEIGHT) - (3-i) * BEAD_H;          // stacked flush at the far end, real gap in between
       b.style.top = top + 'px';
     });
+    updateLabels();
   }
   function fire(){ render(); playClack(); if(onChange) onChange(); }
+  function onBeadKey(e, action){
+    if(e.key==='Enter' || e.key===' ' || e.key==='Spacebar'){ e.preventDefault(); action(); }
+  }
 
-  heavenBead.addEventListener('click', ()=>{ heavenActive = !heavenActive; fire(); });
+  const toggleHeaven = ()=>{ heavenActive = !heavenActive; fire(); };
+  heavenBead.addEventListener('click', toggleHeaven);
+  heavenBead.addEventListener('keydown', (e)=> onBeadKey(e, toggleHeaven));
   earthBeads.forEach((b,i)=>{
-    b.addEventListener('click', ()=>{
-      earthCount = (i < earthCount) ? i : i+1;
-      fire();
-    });
+    const toggleEarth = ()=>{ earthCount = (i < earthCount) ? i : i+1; fire(); };
+    b.addEventListener('click', toggleEarth);
+    b.addEventListener('keydown', (e)=> onBeadKey(e, toggleEarth));
   });
 
   /* drag support: press a bead, drag toward/away from the bar, release to commit */
@@ -1924,7 +2020,10 @@ function addReplayButton(q){
   wrap.appendChild(btn); box.appendChild(wrap);
 }
 
-function startSpeedTimer(){
+// startPct lets a wrong-but-not-final guess resume the same countdown instead of losing it —
+// handleAnswer() used to clearInterval() on every answer and never restart it, so any single
+// wrong tap silently made the rest of that question untimed for the rest of a "timed" round.
+function runSpeedTimer(startPct){
   const wrap = document.getElementById('timer-wrap');
   wrap.classList.remove('hidden');
   const bar = document.getElementById('timer-bar');
@@ -1932,13 +2031,15 @@ function startSpeedTimer(){
   // this used to be a flat 9s (90 ticks) no matter how hard the question was
   const ticks = Math.round(50 + (currentQuestion.levelIdx||1)*4);
   const countdown = document.getElementById('timer-countdown');
-  let pct = 100; bar.style.width='100%'; bar.classList.remove('urgent'); countdown.classList.add('hidden');
+  const urgentThreshold = 3000/ticks;
+  let pct = startPct==null ? 100 : startPct;
+  bar.style.width=pct+'%'; bar.classList.toggle('urgent', pct<=urgentThreshold);
+  countdown.classList.toggle('hidden', pct>urgentThreshold);
   clearInterval(timerInterval);
   timerInterval = setInterval(()=>{
     pct -= 100/ticks;
     if(pct<=0){ pct=0; clearInterval(timerInterval); handleAnswer(false, null, true); }
     bar.style.width = pct+'%';
-    const urgentThreshold = 3000/ticks;
     const isUrgent = pct <= urgentThreshold;
     bar.classList.toggle('urgent', isUrgent);
     if(isUrgent){
@@ -1949,6 +2050,7 @@ function startSpeedTimer(){
     }
   }, 100);
 }
+function startSpeedTimer(){ runSpeedTimer(100); }
 
 function renderChoices(q){
   const choicesArea = document.getElementById('choices-area'); choicesArea.innerHTML='';
@@ -2068,6 +2170,10 @@ function handleAnswer(isCorrect, btnEl, timedOut){
         allBtns.forEach(b=>{ if(b!==btnEl) b.disabled=false; });
         if(btnEl) btnEl.classList.remove('wrong');
         mascot.classList.remove('sad');
+        if(currentMode==='speed'){
+          const remainingPct = parseFloat(document.getElementById('timer-bar').style.width) || 0;
+          if(remainingPct > 0) runSpeedTimer(remainingPct);
+        }
       }, 700);
     }
   }
@@ -2179,13 +2285,12 @@ function finishRound(){
   document.getElementById('stars-row').textContent = '⭐'.repeat(roundStars)+'☆'.repeat(3-roundStars);
   updateMascots();
 
-  const certBtn = document.getElementById('btn-print-cert');
   const nextLevelBtn = document.getElementById('btn-next-level');
   const levelMapBtn = document.getElementById('btn-level-map');
   const unlockMsg = document.getElementById('unlock-message');
   const heading = document.getElementById('reward-heading');
   const continueBtn = document.getElementById('btn-reward-continue');
-  certBtn.classList.add('hidden'); nextLevelBtn.classList.add('hidden');
+  nextLevelBtn.classList.add('hidden');
   levelMapBtn.classList.add('hidden'); unlockMsg.classList.add('hidden');
 
   if(currentMode==='story'){
@@ -2232,14 +2337,17 @@ function finishRound(){
       nextLevelBtn.classList.remove('hidden');
       nextLevelBtn.onclick = ()=> startGame('story', lvl+1);
     }
+    // Certificate access used to be duplicated here as its own purple button, sharing color
+    // and size with Level Map right next to it — two different destinations competing for
+    // the same "secondary action" signal exactly when an excited kid is least likely to read
+    // carefully. The Skill Map's per-node 🏆 already gives permanent certificate access for
+    // any completed level, so Level Map alone is enough to get there from this screen.
     levelMapBtn.classList.remove('hidden');
     levelMapBtn.onclick = ()=>{ renderSkillMap(); showScreen('screen-skillmap'); };
-
-    certBtn.classList.remove('hidden');
-    certBtn.onclick = ()=> showCertificateFor(lvl, 'screen-reward');
   } else {
     heading.textContent = t('greatJobHero');
     continueBtn.classList.remove('hidden');
+    if(currentMode==='daily'){ state.dailyMissionDate = todayStr(); saveState(); }
   }
 
   const beatWholeGame = currentMode==='story' && currentJourneyLevel===LEVELS.length && LEVELS.every(l=>state.completedLevels[l.id]);
@@ -2390,26 +2498,37 @@ function renderSkillMap(){
 
 /* ---- one-time parent approval to unlock levels 6-8 (bigger numbers) ---- */
 function openParentUnlockGate(onSuccess){
+  renderParentUnlockQuestion(onSuccess);
+  document.getElementById('parentunlock-overlay').classList.remove('hidden');
+}
+// split out so a wrong answer can regenerate a fresh question and stay open, instead of the
+// overlay just closing with no feedback at all — indistinguishable from the app being broken
+// to a grown-up who simply mistapped the arithmetic
+function renderParentUnlockQuestion(onSuccess){
   const a = rand(4,9), b = rand(3,8);
   const answer = a+b;
   document.getElementById('parentunlock-question').textContent = t('grownupCheckQuestion',{a,b});
+  document.getElementById('parentunlock-feedback').textContent = '';
   let choices = new Set([answer]);
   while(choices.size<3){ let d=answer+pick([-3,-2,2,3]); if(d>0) choices.add(d); }
   const wrap = document.getElementById('parentunlock-choices'); wrap.innerHTML='';
   shuffle([...choices]).forEach(c=>{
     const b2=document.createElement('button'); b2.className='choice-btn'; b2.textContent=c;
     b2.addEventListener('click', ()=>{
-      document.getElementById('parentunlock-overlay').classList.add('hidden');
       if(c===answer){
+        document.getElementById('parentunlock-overlay').classList.add('hidden');
         state.parentApprovedHighLevels = true;
         if(state.highestUnlockedLevel < PARENT_GATE_LEVEL) state.highestUnlockedLevel = PARENT_GATE_LEVEL;
         saveState();
         onSuccess();
+      } else {
+        wrap.querySelectorAll('.choice-btn').forEach(x=> x.disabled=true);
+        document.getElementById('parentunlock-feedback').textContent = t('gateWrongFeedback');
+        after(()=> renderParentUnlockQuestion(onSuccess), 900);
       }
     });
     wrap.appendChild(b2);
   });
-  document.getElementById('parentunlock-overlay').classList.remove('hidden');
 }
 document.getElementById('btn-parentunlock-cancel').addEventListener('click', ()=>{
   document.getElementById('parentunlock-overlay').classList.add('hidden');
@@ -2417,7 +2536,7 @@ document.getElementById('btn-parentunlock-cancel').addEventListener('click', ()=
 
 /* ---- overlay accessibility: move focus into a dialog when it opens, return focus to whatever
    opened it when it closes, and let Escape dismiss the ones that have a safe/reversible exit ---- */
-const OVERLAY_IDS = ['break-overlay','mini-overlay','tutorial-overlay','parentunlock-overlay','achievement-overlay'];
+const OVERLAY_IDS = ['break-overlay','mini-overlay','tutorial-overlay','parentunlock-overlay','achievement-overlay','weakempty-overlay','dailydone-overlay'];
 /* Several overlays are triggered independently (a wall-clock break reminder, a question-count
    mini-mission checkpoint, an achievement unlock) and nothing previously stopped two of them
    from landing on the same moment and rendering stacked on top of each other. anyOverlayOpen()
@@ -2453,7 +2572,7 @@ OVERLAY_IDS.forEach(id=>{
 document.addEventListener('keydown', (e)=>{
   if(e.key !== 'Escape') return;
   // the first-run tutorial has no safe skip (it gates the game start callback), so it's excluded
-  const escapeDismiss = {'break-overlay':'btn-break-continue','mini-overlay':'btn-mini-continue','parentunlock-overlay':'btn-parentunlock-cancel','achievement-overlay':'btn-achievement-continue'};
+  const escapeDismiss = {'break-overlay':'btn-break-continue','mini-overlay':'btn-mini-continue','parentunlock-overlay':'btn-parentunlock-cancel','achievement-overlay':'btn-achievement-continue','weakempty-overlay':'btn-weakempty-cancel','dailydone-overlay':'btn-dailydone-close'};
   for(const id in escapeDismiss){
     if(!document.getElementById(id).classList.contains('hidden')){
       document.getElementById(escapeDismiss[id]).click();
@@ -2463,10 +2582,14 @@ document.addEventListener('keydown', (e)=>{
 });
 
 /* ================= PARENT GATE (dashboard) + DASHBOARD ================= */
-document.getElementById('btn-parent-gate').addEventListener('click', ()=>{
+// split out so a wrong answer can regenerate a fresh question and stay on this screen, instead
+// of silently bouncing back to Start with no feedback — indistinguishable from the app being
+// broken to a grown-up who simply mistapped the arithmetic
+function renderGateQuestion(){
   const a = rand(3,9), b = rand(1,7);
   const answer = a+b;
   document.getElementById('gate-question').textContent = t('gateQuestion',{a,b});
+  document.getElementById('gate-feedback').textContent = '';
   let choices = new Set([answer]);
   while(choices.size<3){ let d=answer+pick([-3,-2,2,3]); if(d>0) choices.add(d); }
   const wrap = document.getElementById('gate-choices'); wrap.innerHTML='';
@@ -2474,10 +2597,17 @@ document.getElementById('btn-parent-gate').addEventListener('click', ()=>{
     const b2=document.createElement('button'); b2.className='choice-btn'; b2.textContent=c;
     b2.addEventListener('click', ()=>{
       if(c===answer){ renderDashboard(); showScreen('screen-dashboard'); }
-      else { showScreen('screen-start'); }
+      else {
+        wrap.querySelectorAll('.choice-btn').forEach(x=> x.disabled=true);
+        document.getElementById('gate-feedback').textContent = t('gateWrongFeedback');
+        after(renderGateQuestion, 900);
+      }
     });
     wrap.appendChild(b2);
   });
+}
+document.getElementById('btn-parent-gate').addEventListener('click', ()=>{
+  renderGateQuestion();
   showScreen('screen-gate');
 });
 document.getElementById('btn-gate-cancel').addEventListener('click', ()=> showScreen('screen-start'));

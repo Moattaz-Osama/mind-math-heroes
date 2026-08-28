@@ -186,14 +186,12 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .card .txt strong{display:block;font-size:18px;}
 .card .txt span{font-size:13px;color:var(--text-muted);font-weight:600;}
 
-/* sticky for the same reason as .teacher-sticky below: scrolling the Gear tab's shop grid
-   (or a long Heroes grid) used to carry these tabs up underneath the app's own sticky
-   top-bar and out of reach, with no way to switch tabs again without scrolling back to the
-   very top first. top:78px matches the top-bar's own box model (10px+48px+20px — kept in
-   sync with .round-btn.sm's height, not an independent number). */
+/* Kept sticky (below the top-bar) so scrolling a long Heroes / Gear grid doesn't carry the
+   tab switch out of reach. Background is fully opaque — a translucent sticky lets scrolled-under
+   content ghost through and read as overlapping controls. top:78px matches the top-bar's own
+   box model (10px+48px+20px — kept in sync with .round-btn.sm's height). */
 .tab-row{display:flex;gap:8px;justify-content:center;z-index:5;margin-bottom:10px;
-  position:sticky;top:78px;width:100%;padding:8px 0;border-radius:14px;
-  background:var(--surface-translucent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+  position:sticky;top:78px;width:100%;padding:8px 0;border-radius:14px;background:var(--surface);}
 .tab-btn{font-family:inherit;font-size:15px;font-weight:700;padding:9px 18px;min-height:44px;border-radius:14px;
   border:3px solid var(--border-soft);background:var(--surface);color:var(--text-muted);cursor:pointer;transition:transform .08s;}
 .tab-btn:active{transform:scale(.96);}
@@ -432,25 +430,18 @@ html[dir="rtl"] .cert-seal{right:auto;left:14px;}
 
 /* ---- teacher mode ---- */
 .teacher-panel{width:100%;max-width:520px;background:var(--surface);border-radius:20px;padding:16px;box-shadow:0 6px 0 rgba(0,0,0,.08);z-index:5;margin-top:6px;}
-/* Level select / New Problem / stage / Show Next / Reveal Answer / Show Abacus / Read Aloud
-   are the controls a teacher presses over and over through a live lesson — Class Tally sits
-   below them and, once the abacus panel is toggled on, needs scrolling to reach. Without this,
-   that scroll carries these controls up underneath the app's own sticky top-bar (78px = its
-   own 10px+48px+20px box model) and out of reach, with no scroll position that shows both at
-   once. Pinning this whole block (including tool-row) right below the top-bar keeps every
-   teacher-facing control always reachable while the abacus drawing and the tally scroll
-   underneath. Including tool-row pushed this block to ~373px tall at a 375x667 viewport,
-   which left only ~5px of clearance before Class Tally's buttons — too tight, so
-   .teacher-stage was trimmed (min-height 110px->78px, padding 24px->14px) and the two
-   .teacher-row/.tool-row top margins inside this block were tightened (8-10px->6px) to buy
-   back headroom. Verified via elementFromPoint hit-testing at every button's center across
-   the full scroll range (0 through max) with zero misses. If this block's content grows again,
-   re-verify the same way — the margin against Class Tally is real but not large. */
-.teacher-sticky{position:sticky;top:78px;z-index:4;margin:0 -16px;padding:0 16px 2px;
-  background:var(--surface-translucent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+/* This block groups the controls a teacher presses through a lesson (level / New Problem /
+   stage / Next Question / Reveal Answer / Show Abacus / Read Aloud). It used to be
+   position:sticky (pinned below the top-bar) so it stayed on screen while the tally scrolled —
+   but a sticky element reserves no space when pinned, so on a short window the Class Score
+   rows flowed up *under* its painted position and, through its translucent background, looked
+   like overlapping buttons. Now it's a normal block: the whole panel scrolls as one, the
+   abacus drawing sits last so only it ever needs scrolling, and the top-bar (still sticky)
+   keeps Lang / Back reachable. */
+.teacher-sticky{margin:0;}
 .teacher-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
-.teacher-sticky .teacher-row{margin-top:6px;}
-.teacher-sticky .tool-row{margin-top:6px;}
+.teacher-sticky .teacher-row{margin-top:8px;}
+.teacher-sticky .tool-row{margin-top:8px;}
 select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px 12px;border-radius:12px;border:3px solid var(--purple);
   max-width:100%;min-width:0;} /* was intrinsic-width (~328px from the longest option) — overflowed a 320px viewport */
 .teacher-stage{background:#2B2320;border-radius:16px;padding:14px 14px;min-height:78px;display:flex;
@@ -804,7 +795,6 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
           <button type="button" class="tool-btn" id="btn-teacher-read" data-i18n="readAloud">🔊 Read Aloud</button>
         </div>
       </div>
-      <div class="abacus-wrap hidden" id="teacher-abacus-panel" style="margin-top:10px;"></div>
       <h2 style="margin-top:16px;font-size:18px;" data-i18n="classTally">Class Tally</h2>
       <div class="tally-box">
         <div class="tally-card ok"><span class="tally-num" id="tally-ok">0</span><span class="tally-cap">✅ <span data-i18n="correctLabel">Correct</span></span></div>
@@ -817,6 +807,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div class="teacher-row">
         <button class="big-btn teal small" id="btn-tally-reset" style="margin-top:0;" data-i18n="resetBtn">Reset</button>
       </div>
+      <div class="abacus-wrap hidden" id="teacher-abacus-panel" style="margin-top:14px;"></div>
     </div>
   </section>
   </main>

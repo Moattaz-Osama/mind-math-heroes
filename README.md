@@ -1,6 +1,6 @@
 # 🦸 Mind Math Heroes
 
-> A single-file web game that turns mental-math practice into a hero's journey, for children roughly ages 5 to 10, their parents, and their teachers.
+A single-file web game that turns mental-math practice into a hero's journey, for children roughly ages 5 to 10, their parents, and their teachers.
 
 **▶ [Play now](https://moattaz-osama.github.io/mind-math-heroes/)**  ·  English / Arabic (RTL)  ·  Works offline  ·  No install
 

@@ -32,6 +32,7 @@
   --ease-spring: cubic-bezier(.34,1.56,.64,1);
   --ease-out: cubic-bezier(.16,1,.3,1);
   --level-chip-text:#1F6E85; /* 5.43:1 on --sky2, was #2E8AA3 at 3.73:1 (fails WCAG AA) */
+  --carrot-text:#B0531A; /* ~5:1 on white — use for carrot-coloured TEXT on light surfaces (bright --carrot #FF8C42 is only ~2.2:1) */
 }
 :root[data-theme="dark"]{
   --sky:#1E2A4A; --sky2:#141B33;
@@ -40,6 +41,7 @@
   --surface:#232C4E; --text-muted:#C9BEFF; --track-bg:#33406b; --border-soft:#3A487A;
   --surface-translucent:rgba(35,44,78,.96);
   --level-chip-text:#7FE0E0; /* 11:1 on dark --sky2 */
+  --carrot-text:#FFB27A; /* bright orange text is fine on the dark surface; lighten a touch for pop */
 }
 :root[data-theme="dark"] .tab-btn.active{background:#3A2F5E;}
 :root[data-theme="dark"] .char-card.selected,
@@ -49,6 +51,10 @@
 :root[data-theme="dark"] .building{background:#2C3654;border-top-color:#212A44;}
 :root[data-theme="dark"] .cloud{opacity:.25;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+/* kill the ~300ms double-tap delay AND accidental double-tap page-zoom on controls, without
+   disabling pinch-zoom (which would fail WCAG 1.4.4). Beads keep touch-action:none for dragging. */
+button,select,input,label,a,[role="button"],.card,.char-card,.tab-btn,.choice-btn,.skill-node-tile,
+.skill-node-cert-btn,.tally-step,.replay-btn,.big-btn,.round-btn,.tool-btn{touch-action:manipulation;}
 html,body{margin:0;padding:0;height:100%;font-family:'Quicksand',sans-serif;
   background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 45%,var(--bg3) 80%,var(--bg4) 100%);
   overflow:hidden;color:var(--brown);user-select:none;transition:background-color .2s ease;}
@@ -159,10 +165,11 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .big-btn:active{transform:translateY(5px);box-shadow:0 1px 0 #B85A1E;}
 .big-btn.purple{background:linear-gradient(180deg,var(--purple),#6E4FB0);box-shadow:0 6px 0 #5A3D93;}
 .big-btn.teal{background:linear-gradient(180deg,#4FB6D1,#2E8AA3);box-shadow:0 6px 0 #256D80;}
-.big-btn.small{font-size:15px;padding:9px 22px;margin-top:8px;box-shadow:0 4px 0 #B85A1E;
-  min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
+.big-btn.small{font-size:15px;padding:10px 22px;margin-top:8px;box-shadow:0 4px 0 #B85A1E;
+  min-height:48px;display:inline-flex;align-items:center;justify-content:center;}
 .big-btn:disabled{opacity:.5;cursor:default;}
 
+.name-label{font-weight:700;font-size:14px;color:var(--text-muted);margin-top:6px;text-align:center;}
 .name-input{font-family:inherit;font-size:16px;font-weight:700;padding:9px 16px;border-radius:14px;
   border:3px solid var(--sun);text-align:center;margin-top:6px;width:220px;max-width:80vw;z-index:5;}
 
@@ -213,8 +220,8 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .shop-item .emoji{width:56px;height:56px;margin:0 auto;}
 .shop-item .emoji svg{width:100%;height:100%;display:block;}
 .shop-item .name-txt{font-size:13px;font-weight:700;line-height:1.25;min-height:32px;display:flex;align-items:center;justify-content:center;margin-top:4px;}
-.shop-item .price{font-size:13px;font-weight:700;color:var(--carrot);}
-.shop-item button{display:block;width:100%;margin-top:6px;font-size:12.5px;padding:6px 10px;border-radius:10px;border:none;
+.shop-item .price{font-size:13px;font-weight:800;color:var(--carrot-text);}
+.shop-item button{display:block;width:100%;margin-top:6px;font-size:13px;padding:8px 10px;min-height:44px;border-radius:10px;border:none;
   background:var(--grass-dark);color:#fff;font-weight:700;cursor:pointer;}
 .shop-item button:disabled{background:#ccc;color:#888;cursor:default;}
 .shop-item.owned{border-color:var(--grass-dark);background:#F0FFE0;}
@@ -269,12 +276,14 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .timer-countdown{font-size:15px;font-weight:800;color:#E0353A;min-width:16px;text-align:center;
   animation:countdownPulse .5s ease-in-out infinite;}
 @keyframes countdownPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.25);}}
-.choices{display:flex;gap:10px;justify-content:center;margin-top:8px;flex-wrap:wrap;}
+.choices{display:flex;gap:14px;justify-content:center;margin-top:8px;flex-wrap:wrap;}
+/* answer buttons: bigger + more separated so small fingers don't mis-tap the neighbour
+   (was 50-60px wide with a 10px gap). */
 .choice-btn{font-family:inherit;font-size:clamp(18px,5vw,24px);font-weight:800;background:var(--sky2);
-  border:3px solid #9ED8EA;border-radius:16px;min-width:60px;min-height:60px;cursor:pointer;transition:transform .08s,background .15s;}
+  border:3px solid #9ED8EA;border-radius:16px;min-width:66px;min-height:64px;padding:0 10px;cursor:pointer;transition:transform .08s,background .15s;}
 .choice-btn:active{transform:scale(.94);}
-.choices.digits-3 .choice-btn{min-width:76px;padding:0 6px;font-size:clamp(16px,4.4vw,21px);}
-.choices.digits-1 .choice-btn{min-width:50px;}
+.choices.digits-3 .choice-btn{min-width:82px;padding:0 8px;font-size:clamp(16px,4.4vw,21px);}
+.choices.digits-1 .choice-btn{min-width:64px;}
 .choice-btn.correct{background:var(--grass);border-color:var(--grass-dark);color:#fff;animation:choicePop .4s var(--ease-spring);}
 .choice-btn.wrong{background:#FFC9C9;border-color:#E88;animation:choiceShake .35s ease;}
 @keyframes choicePop{0%{transform:scale(1);}45%{transform:scale(1.18);}100%{transform:scale(1);}}
@@ -293,27 +302,35 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 @keyframes shineSweep{0%{left:-40%;}100%{left:110%;}}
 
 /* ---- authentic soroban ---- */
-.abacus-wrap{margin-top:10px;background:#FFF9EE;border:3px dashed var(--sun);border-radius:16px;padding:10px;}
+.abacus-wrap{margin-top:10px;background:#FFF9EE;border:3px dashed var(--sun);border-radius:16px;padding:10px;
+  touch-action:pan-y;} /* a stray palm on the abacus area can still scroll vertically, but not pinch-zoom or h-pan */
 .soroban{display:inline-flex;flex-direction:column;align-items:center;
   background:linear-gradient(180deg,#6B4A2E,#4A3220);border-radius:10px;padding:8px 12px 10px;
   box-shadow:0 5px 0 rgba(0,0,0,.25), inset 0 0 0 3px #8a6440;}
-.soroban .label{font-size:11px;font-weight:700;color:#FFE9B0;margin-bottom:5px;}
+.soroban .label{font-size:12px;font-weight:700;color:#FFE9B0;margin-bottom:5px;}
 .soroban-frame{display:flex;gap:6px;background:#5A3E27;border-radius:6px;padding:6px;}
-.rod-col{display:flex;flex-direction:column;align-items:center;position:relative;width:28px;}
+.rod-col{display:flex;flex-direction:column;align-items:center;position:relative;width:36px;}
 .rod-col::before{content:'';position:absolute;top:0;bottom:0;width:2px;background:#2b1c10;left:50%;
   transform:translateX(-50%);z-index:0;}
-.heaven-track{position:relative;height:40px;width:100%;z-index:1;}
-.earth-track{position:relative;height:100px;width:100%;z-index:1;}
+.heaven-track{position:relative;height:46px;width:100%;z-index:1;}
+.earth-track{position:relative;height:118px;width:100%;z-index:1;}
 .bar{width:100%;height:5px;background:linear-gradient(180deg,#D94F3A,#B5382A);margin:1px 0;z-index:2;position:relative;}
-.bead{position:absolute;left:50%;width:24px;height:18px;margin-left:-12px;cursor:grab;touch-action:none;
+/* beads were a 24x18 tap target (fixed at every viewport) — far below the 44px guideline and
+   very hard for a 5-7 year-old to hit on a phone. Enlarged to ~34x26, with the rod column,
+   tracks and JS bead-geometry constants (BEAD_H / *_TRACK_H / BEAD_HEIGHT) scaled to match. */
+.bead{position:absolute;left:50%;width:34px;height:26px;margin-left:-17px;cursor:grab;touch-action:none;
   background:radial-gradient(circle at 35% 30%, #FFE79A, #F0B94A 55%, #C98A24 100%);
   clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
   box-shadow:0 1px 2px rgba(0,0,0,.4);transition:top .22s cubic-bezier(.34,1.4,.64,1);}
+/* the diamond art stays 34x26; this invisible box grows the tap/click area to ~46x38 so small
+   fingers can hit a bead. Kept modest so stacked beads (28px apart) don't overlap badly; pointer
+   events on the pseudo-element target the parent .bead. */
+.bead::after{content:'';position:absolute;top:-6px;bottom:-6px;left:-6px;right:-6px;}
 .bead.active{background:radial-gradient(circle at 35% 30%, #FFF3C0, #FFCE54 55%, #E8A93B 100%);
   box-shadow:0 0 0 2px #FFE79A, 0 1px 3px rgba(0,0,0,.5);}
 .bead.dragging{transition:none;cursor:grabbing;}
 .digit-readout{font-weight:800;font-size:15px;margin-top:5px;color:#FFE9B0;}
-.rod-place{font-size:10px;color:#c9b592;margin-top:1px;}
+.rod-place{font-size:12px;color:#d8c7a6;margin-top:1px;}
 
 .stars-row{font-size:40px;margin:6px 0 10px;}
 .confetti{position:absolute;top:-40px;font-size:24px;z-index:30;animation-name:fall;animation-timing-function:ease-in;}
@@ -333,6 +350,22 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 .overlay-card .em{font-size:54px;}
 .hidden{display:none !important;}
 
+/* transient status toast (locked-tile taps, etc.) — bottom-center, above the ground strip */
+.toast{position:absolute;left:50%;bottom:calc(11% + 18px);transform:translateX(-50%) translateY(12px);
+  background:var(--brown);color:#fff;font-weight:800;font-size:14px;padding:10px 18px;border-radius:999px;
+  max-width:82%;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.28);z-index:45;
+  opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s var(--ease-out);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+:root[data-theme="dark"] .toast{background:#000;border:1px solid var(--border-soft);}
+
+/* locked skill tile: a small shake on tap so the "nothing happened" feeling is replaced with
+   clear "not yet" feedback (paired with the toast + buzz in renderSkillMap) */
+.skill-node-tile.nudge{animation:shake .4s ease;}
+
+/* teacher "Reset Score" armed state (first tap) — visibly different so the second, destructive
+   tap is deliberate */
+.big-btn.small.confirm-armed{background:linear-gradient(180deg,#E0353A,#B5282C);box-shadow:0 4px 0 #8f1f22;}
+
 /* The tiles already carry a lock/pointer/check glyph per state (see skill-node-tile below),
    but at a glance on a phone those read as decoration, not status — this line spells out
    what they mean once, instead of asking a child to tap around to find out. */
@@ -348,7 +381,7 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
    height authoritative again, so .screen can actually scroll far enough to clear it. */
 .skillmap-path{position:relative;width:100%;max-width:340px;margin:8px auto 0;z-index:5;flex-shrink:0;}
 .skill-node-wrap{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;
-  align-items:center;width:106px;z-index:1;}
+  align-items:center;width:118px;z-index:1;}
 /* rounded-square "tile" instead of a plain circle — sits on the colored road like a board-game
    space, and matches the app's own rounded-rect language (cards, shop items) rather than the
    circle used nowhere else in the UI */
@@ -361,8 +394,8 @@ h2{font-size:clamp(20px,5.5vw,28px);margin:4px 0;}
 :root[data-theme="dark"] .skill-node-tile.completed{background:#1F3A2E;}
 .skill-node-tile.locked{opacity:.65;cursor:default;}
 .skill-node-tile:disabled{cursor:default;}
-.skill-node-label{font-size:10.5px;font-weight:700;text-align:center;margin-top:4px;line-height:1.2;
-  color:var(--brown);background:var(--surface);padding:2px 6px;border-radius:8px;max-width:100px;
+.skill-node-label{font-size:max(12px,0.78rem);font-weight:700;text-align:center;margin-top:4px;line-height:1.2;
+  color:var(--brown);background:var(--surface);padding:2px 6px;border-radius:8px;max-width:116px;
   box-shadow:0 2px 0 rgba(0,0,0,.06);}
 .skill-node-stars{font-size:12px;margin-top:2px;}
 .skill-node-cert-btn{margin-top:3px;font-size:13px;line-height:1;background:var(--surface);
@@ -394,7 +427,7 @@ html[dir="rtl"] .cert-seal{right:auto;left:14px;}
 .cert-sign-line{width:160px;border-top:2px solid var(--brown);margin-bottom:2px;}
 .cert-sign-label{font-family:'Baloo 2',sans-serif;font-size:14px;font-weight:700;color:var(--purple);}
 .cert h2{font-size:24px;}
-.cert .name{font-size:26px;font-weight:800;color:var(--carrot);margin:10px 0;}
+.cert .name{font-size:clamp(17px,7vw,26px);font-weight:800;color:var(--carrot-text);margin:10px 0;overflow-wrap:anywhere;}
 .cert .em{font-size:60px;}
 
 /* ---- teacher mode ---- */
@@ -418,13 +451,27 @@ html[dir="rtl"] .cert-seal{right:auto;left:14px;}
 .teacher-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
 .teacher-sticky .teacher-row{margin-top:6px;}
 .teacher-sticky .tool-row{margin-top:6px;}
-select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px 12px;border-radius:12px;border:3px solid var(--purple);}
+select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px 12px;border-radius:12px;border:3px solid var(--purple);
+  max-width:100%;min-width:0;} /* was intrinsic-width (~328px from the longest option) — overflowed a 320px viewport */
 .teacher-stage{background:#2B2320;border-radius:16px;padding:14px 14px;min-height:78px;display:flex;
   align-items:center;justify-content:center;margin-top:6px;}
 .teacher-stage .flash-big{color:#FFE9B0;}
-.tally-box{display:flex;gap:16px;justify-content:center;margin-top:10px;font-weight:800;font-size:18px;}
-.tally-box .ok{color:var(--grass-dark);}
-.tally-box .try{color:var(--berry);}
+/* Class Score: the count is the point, so make it big; +1 controls read as steppers, not
+   as primary buttons competing with New Problem / Reveal Answer. */
+.tally-box{display:flex;gap:14px;justify-content:center;margin-top:10px;}
+.tally-card{display:flex;flex-direction:column;align-items:center;min-width:112px;padding:8px 14px;
+  border-radius:16px;background:var(--surface);border:3px solid var(--border-soft);}
+.tally-card.ok{border-color:var(--grass-dark);}
+.tally-card.try{border-color:var(--berry);}
+.tally-num{font-size:34px;font-weight:800;line-height:1;}
+.tally-card.ok .tally-num{color:var(--grass-dark);}
+.tally-card.try .tally-num{color:var(--berry);}
+.tally-cap{font-size:13px;font-weight:700;color:var(--text-muted);margin-top:3px;}
+.tally-step{font-family:inherit;font-weight:800;font-size:15px;padding:9px 18px;border-radius:999px;
+  border:2px solid currentColor;background:var(--surface);cursor:pointer;min-height:46px;transition:transform .08s;}
+.tally-step:active{transform:translateY(2px);}
+.tally-step.ok{color:var(--grass-dark);}
+.tally-step.try{color:var(--berry);}
 
 /* ---- tablet / landscape: give wider viewports room instead of a stretched single column ---- */
 @media (min-width:700px){
@@ -437,6 +484,53 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   .teacher-panel{max-width:640px;}
   .cert{max-width:480px;}
 }
+/* ---- adult areas (Parent Dashboard, Teacher Mode): a purple top band + badge so it's instantly
+   obvious you've left the child's game and entered a grown-up space ---- */
+#screen-dashboard::before, #screen-teacher::before{content:'';position:absolute;top:0;left:0;right:0;
+  height:6px;background:var(--purple);z-index:2;}
+.lang-glyph{font-weight:800;font-size:15px;line-height:1;}
+.cert-hero-line{margin:0 0 8px;color:var(--carrot-text);text-align:center;font-size:clamp(20px,5.5vw,26px);font-weight:800;}
+.grownup-badge{display:inline-flex;align-items:center;gap:5px;align-self:center;
+  font-size:12px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;
+  color:var(--purple);background:var(--surface);border:2px solid var(--purple);
+  border-radius:999px;padding:3px 12px;margin:2px 0 4px;flex:0 0 auto;}
+
+/* ---- short viewports (small phones in portrait, ~<=740px tall): the game mascot + its 34px
+   top margin used to push the question, answers AND the Read it / Say Answer / Show Helper
+   tool row below the fold, so a pre-reader who needs "Hear Question" had to scroll to find it.
+   Tighten the vertical rhythm so the whole interaction fits above the fold at 320x568. ---- */
+@media (max-height:740px){
+  #mascot-game{width:44px !important;height:53px !important;margin-top:4px !important;font-size:28px !important;}
+  #screen-game .progress{margin-top:2px;}
+  #screen-game .question-box{padding-top:5px;padding-bottom:5px;}
+  #screen-game .difficulty-meter{margin:1px 0;}
+  #screen-game .prompt{margin:2px 0;}
+  #screen-game .choices{margin-top:4px;}
+  #screen-game .tool-row{margin-top:5px;gap:6px;}
+  #screen-game .tool-btn{padding:6px 8px;min-height:44px;} /* keep the child's assistive controls a full 44px */
+}
+/* ---- landscape phone (very short, wide): even with the mascot shrunk, a vertical stack of
+   question + answers + tools can't fit ~320px of height. Drop the mascot entirely and compress
+   so at least the question and answer choices are visible together without scrolling. ---- */
+@media (orientation:landscape) and (max-height:480px){
+  #screen-game{padding-top:4px;padding-bottom:4px;}
+  #screen-game #mascot-game{display:none;}
+  #screen-game .top-bar{padding-top:4px;padding-bottom:4px;margin-bottom:2px;}
+  #screen-game .progress{margin-top:0;}
+  #screen-game .progress > div:first-child{margin-bottom:1px;}
+  #screen-game .level-chip{display:none;} /* the sr-only <h1> already names the mode */
+  #screen-game .difficulty-meter{display:none;}
+  #screen-game .question-box{padding:2px 10px;max-width:540px;}
+  #screen-game .prompt{margin:0;font-size:13px;}
+  #screen-game .equation{margin:1px 0;min-height:44px;}
+  #screen-game .equation .flash-big{font-size:34px;}
+  #screen-game .flash-trail{font-size:14px;}
+  #screen-game .choices{margin-top:3px;gap:10px;}
+  #screen-game .choice-btn{min-height:52px;min-width:56px;font-size:20px;}
+  #screen-game .feedback{margin-top:3px;min-height:0;}
+  #screen-game .tool-row{margin-top:4px;}
+  #screen-game .tool-btn{min-height:40px;padding:5px 8px;font-size:13px;}
+}
 /* ---- large desktop: a full-bleed phone layout looks stretched and empty on a monitor,
    so frame the app like a floating device instead of filling the whole browser window ---- */
 @media (min-width:1000px){
@@ -447,11 +541,23 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   /* the winding skill-map path was still capped at its tablet width (460px) inside this much
      wider ~900px frame, so it rendered as a narrow, sparse column with huge empty margins */
   .skillmap-path{max-width:640px;}
+  /* Teacher / Presenter Mode on a classroom projector or smartboard: the 640px cap + 26-34px
+     type is unreadable from across a room. Widen and scale the problem + tally way up. */
+  .teacher-panel{max-width:860px;}
+  .teacher-stage{min-height:150px;padding:20px;}
+  .teacher-stage .flash-big{font-size:clamp(64px,13vw,150px);}
+  .teacher-stage .flash-status{font-size:clamp(22px,3.4vw,40px);}
+  .tally-num{font-size:clamp(44px,5vw,84px);}
+  .tally-cap{font-size:clamp(14px,1.6vw,20px);}
+  #screen-teacher h2[data-i18n="classTally"]{font-size:clamp(20px,2.4vw,28px);}
 }
 @media print{
+  @page{size:landscape;margin:12mm;}
   body *{visibility:hidden;}
   #screen-certificate, #screen-certificate *{visibility:visible;}
   #screen-certificate{position:absolute;top:0;left:0;width:100%;display:flex !important;}
+  #screen-certificate .cert{max-width:none;width:100%;box-shadow:none;}
+  .cert-hero-line{color:#000 !important;}
   .no-print{display:none !important;}
 }
 @media (prefers-reduced-motion: reduce){
@@ -481,8 +587,8 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
     <h1 data-i18n="appTitle">Mind Math Heroes</h1>
     <div class="subtitle" data-i18n="appSubtitle">Train your brain — the hero way!</div>
     <div class="mascot" id="mascot-start">🦸</div>
-    <label class="sr-only" for="input-childname" data-i18n="yourName">Your name (optional)</label>
-    <input class="name-input" id="input-childname" placeholder="Your name (optional)" maxlength="20" data-i18n-placeholder="yourName">
+    <label class="name-label" for="input-childname" data-i18n="yourName">What's your hero name?</label>
+    <input class="name-input" id="input-childname" placeholder="Type your name" maxlength="20" data-i18n-placeholder="yourNamePlaceholder" autocomplete="off" autocapitalize="words">
     <div class="badges-row" id="streak-badge"></div>
     <div class="hidden" id="resume-banner" style="width:100%;max-width:320px;background:var(--surface);border:3px solid var(--berry);
       border-radius:16px;padding:10px 14px;margin-top:8px;z-index:5;">
@@ -492,7 +598,6 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
     </div>
     <button class="big-btn" id="btn-play" data-i18n="play">Play!</button>
     <button class="big-btn purple small" id="btn-choose-hero" data-i18n="chooseHero">Choose Your Hero</button>
-    <button class="big-btn teal small" id="btn-teacher-mode" data-i18n="teacherModeBtn">👩‍🏫 Teacher Mode</button>
   </section>
 
   <!-- CHARACTER SELECT -->
@@ -511,6 +616,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
     <div id="tab-panel-heroes">
       <h2 data-i18n="pickHero">Pick Your Hero</h2>
       <div class="char-grid" id="char-grid"></div>
+      <button class="big-btn" id="btn-char-play" data-i18n="charPlayBtn">Play! ▶️</button>
     </div>
     <div id="tab-panel-gear" class="hidden">
       <h2 data-i18n="heroShop">Hero Shop</h2>
@@ -548,7 +654,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div class="pill"><svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg> <span id="carrots-skillmap">0</span></div>
       <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
-        <button type="button" class="round-btn sm" id="btn-skillmap-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
+        <button type="button" class="round-btn sm" id="btn-skillmap-back" data-i18n-aria="backToMissions" data-i18n-label="missionsLabelShort">🏠</button>
       </div>
     </div>
     <h2 style="margin-top:6px;" data-i18n="yourLevelPath">Your Level Path</h2>
@@ -563,20 +669,21 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-mute-toggle" id="btn-mute-toggle-game">🔊</button>
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
-        <button type="button" class="round-btn sm" id="btn-game-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
+        <button type="button" class="round-btn sm" id="btn-game-back" data-i18n-aria="backToMissions" data-i18n-label="missionsLabelShort">🏠</button>
       </div>
     </div>
+    <h1 class="sr-only" id="game-heading" tabindex="-1" data-i18n="modeStoryTitle">Hero Journey</h1>
     <div class="mascot" id="mascot-game" style="font-size:56px;margin-top:34px;">🦸</div>
     <div class="progress" id="progress-dots"></div>
     <div class="question-box">
       <div class="level-chip" id="level-chip" data-i18n="levelChipDefault">Level 1</div>
-      <div class="difficulty-meter" id="difficulty-meter" role="img"></div>
+      <div class="difficulty-meter" id="difficulty-meter" role="img" data-i18n-aria="difficultyShort"></div>
       <div class="prompt" id="prompt-text"></div>
       <div class="equation" id="equation-area"></div>
       <div class="flash-trail hidden" id="flash-trail"></div>
       <div class="timer-row hidden" id="timer-wrap">
         <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
-        <div class="timer-countdown hidden" id="timer-countdown" aria-live="assertive"></div>
+        <div class="timer-countdown hidden" id="timer-countdown" aria-live="polite"></div>
       </div>
       <div class="choices" id="choices-area"></div>
       <div class="feedback" id="feedback-text" aria-live="polite" aria-atomic="true"></div>
@@ -595,12 +702,15 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div class="pill"><svg class="coin-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD93D" stroke="#E8A93B" stroke-width="2"/><circle cx="12" cy="12" r="6.3" fill="none" stroke="#E8A93B" stroke-width="1.2" opacity=".55"/><circle cx="9" cy="9" r="2" fill="#FFF3C0" opacity=".85"/></svg> <span id="carrots-abacus">0</span></div>
       <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
-        <button type="button" class="round-btn sm" id="btn-abacus-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
+        <button type="button" class="round-btn sm" id="btn-abacus-back" data-i18n-aria="backToMissions" data-i18n-label="missionsLabelShort">🏠</button>
       </div>
     </div>
     <h2 style="margin-top:6px;" data-i18n="abacusLabTitle">Abacus Lab</h2>
     <div class="subtitle" data-i18n="abacusLabSub">Say a number, or tap the beads!</div>
-    <div class="tool-row"><button type="button" class="tool-btn" id="btn-lab-mic" data-i18n="labSayNumber">🎤 Say a number</button></div>
+    <div class="tool-row">
+      <button type="button" class="tool-btn" id="btn-lab-mic" data-i18n="labSayNumber">🎤 Say a number</button>
+      <button type="button" class="tool-btn" id="btn-lab-clear" data-i18n="abacusClear">↺ Clear</button>
+    </div>
     <div class="abacus-wrap" id="lab-abacus-wrap" style="margin-top:14px;"></div>
     <div class="feedback" id="lab-feedback" style="margin-top:8px;" aria-live="polite" aria-atomic="true"></div>
   </section>
@@ -610,7 +720,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
     <div class="mascot happy" id="mascot-reward" style="margin-top:50px;">🦸</div>
     <h1 id="reward-heading">Great job, hero! 🎉</h1>
     <div class="stars-row" id="stars-row"></div>
-    <div class="subtitle">You earned <span id="round-carrots">0</span> coins!</div>
+    <div class="subtitle" id="reward-coins-line"></div>
     <div class="subtitle hidden" id="unlock-message" style="color:var(--purple);font-weight:800;"></div>
     <button class="big-btn hidden" id="btn-next-level" data-i18n="nextLevel">Next Level ▶️</button>
     <button class="big-btn purple small hidden" id="btn-level-map" data-i18n="levelMap">🗺️ Level Map</button>
@@ -619,6 +729,7 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
 
   <!-- CERTIFICATE -->
   <section class="screen" id="screen-certificate">
+    <h2 class="cert-hero-line" data-i18n="certHeroLine">🏆 You're a Math Hero!</h2>
     <div class="cert">
       <div class="cert-seal">🏅</div>
       <div class="cert-mascot" id="cert-mascot"></div>
@@ -641,10 +752,11 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
   <section class="screen" id="screen-gate">
     <div class="gate-box">
       <h2 data-i18n="grownupsOnly">Grown-ups only 🔒</h2>
-      <div class="subtitle" id="gate-question">What is 7 + 6?</div>
+      <div class="subtitle" data-i18n="grownupCheckHint" style="margin-bottom:2px;">Please solve this to continue.</div>
+      <div class="subtitle" id="gate-question" style="font-weight:800;">What is 7 + 6?</div>
       <div class="choices" id="gate-choices"></div>
       <div class="feedback" id="gate-feedback" aria-live="polite" aria-atomic="true"></div>
-      <button class="big-btn small" id="btn-gate-cancel" data-i18n="cancelBtn">Cancel</button>
+      <button class="big-btn small" id="btn-gate-cancel" data-i18n="notNow">Not Now</button>
     </div>
   </section>
 
@@ -654,10 +766,12 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div></div>
       <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
-        <button type="button" class="round-btn sm" id="btn-dash-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
+        <button type="button" class="round-btn sm" id="btn-dash-back" data-i18n-aria="backToHero" data-i18n-label="heroLabelShort">🏠</button>
       </div>
     </div>
-    <h2 style="margin-top:6px;" data-i18n="parentDashboard">Parent Dashboard</h2>
+    <div class="grownup-badge" data-i18n="grownupAreaTag">Grown-up area</div>
+    <h2 style="margin-top:2px;" data-i18n="parentDashboard">Parent Dashboard</h2>
+    <button class="big-btn teal small" id="btn-dash-teacher" style="margin-top:4px;" data-i18n="teacherModeBtn">👩‍🏫 Teacher Mode</button>
     <div id="dash-content" style="width:100%;max-width:420px;"></div>
   </section>
 
@@ -667,10 +781,11 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div></div>
       <div class="top-bar-icons">
         <button type="button" class="round-btn sm btn-lang-toggle" data-i18n-aria="langToggleLabel" data-i18n-label="langLabelShort">🌐</button>
-        <button type="button" class="round-btn sm" id="btn-teacher-back" data-i18n-aria="backHome" data-i18n-label="homeLabelShort">🏠</button>
+        <button type="button" class="round-btn sm" id="btn-teacher-back" data-i18n-aria="backBtn" data-i18n-label="backBtn">🏠</button>
       </div>
     </div>
-    <h2 style="margin-top:6px;" data-i18n="teacherModeTitle">Teacher / Presenter Mode</h2>
+    <div class="grownup-badge" data-i18n="grownupAreaTag">Grown-up area</div>
+    <h2 style="margin-top:2px;" data-i18n="teacherModeTitle">Teacher / Presenter Mode</h2>
     <div class="subtitle" data-i18n="teacherModeSub">Full manual control — great for screen-sharing with a class.</div>
     <div class="teacher-panel">
       <div class="teacher-sticky">
@@ -692,12 +807,14 @@ select.big-select{font-family:inherit;font-size:15px;font-weight:700;padding:8px
       <div class="abacus-wrap hidden" id="teacher-abacus-panel" style="margin-top:10px;"></div>
       <h2 style="margin-top:16px;font-size:18px;" data-i18n="classTally">Class Tally</h2>
       <div class="tally-box">
-        <div class="ok">✅ <span data-i18n="correctLabel">Correct</span>: <span id="tally-ok">0</span></div>
-        <div class="try">🔁 <span data-i18n="tryAgainLabel">Try Again</span>: <span id="tally-try">0</span></div>
+        <div class="tally-card ok"><span class="tally-num" id="tally-ok">0</span><span class="tally-cap">✅ <span data-i18n="correctLabel">Correct</span></span></div>
+        <div class="tally-card try"><span class="tally-num" id="tally-try">0</span><span class="tally-cap">🔁 <span data-i18n="tryAgainLabel">Try Again</span></span></div>
+      </div>
+      <div class="teacher-row" style="margin-top:8px;">
+        <button class="tally-step ok" id="btn-tally-ok" data-i18n="plusOneCorrect">+1 Correct</button>
+        <button class="tally-step try" id="btn-tally-try" data-i18n="plusOneTry">+1 Try Again</button>
       </div>
       <div class="teacher-row">
-        <button class="big-btn small" id="btn-tally-ok" style="margin-top:0;" data-i18n="plusOneCorrect">+1 Correct</button>
-        <button class="big-btn purple small" id="btn-tally-try" style="margin-top:0;" data-i18n="plusOneTry">+1 Try Again</button>
         <button class="big-btn teal small" id="btn-tally-reset" style="margin-top:0;" data-i18n="resetBtn">Reset</button>
       </div>
     </div>
@@ -798,10 +915,11 @@ if(document.fonts && document.fonts.ready){
 /* ================= i18n ================= */
 const STRINGS = {
 en: {
-  appTitle:'Mind Math Heroes', appSubtitle:'Train your brain — the hero way!',
-  yourName:'Your name (optional)', resumeDefault:'Continue where you left off?', resumeBtn:'▶️ Resume', startFresh:'Start Fresh',
-  langToggleLabel:'Switch language', parentGateLabel:'Parent settings', backHome:'Back to home', teacherLevelLabel:'Level to present',
+  appTitle:'Mind Math Heroes', appSubtitle:'Become a Math Hero! 🦸',
+  yourName:"What's your hero name?", yourNamePlaceholder:'Type your name', resumeDefault:'Continue where you left off?', resumeBtn:'▶️ Resume', startFresh:'Start Fresh',
+  langToggleLabel:'Switch language', parentGateLabel:'Parent settings', backHome:'Back to home', teacherLevelLabel:'Choose a Level',
   langLabelShort:'Lang', homeLabelShort:'Home', gateLabelShort:'Parents', themeLabelShort:'Theme', muteLabelShort:'Sound',
+  backToMissions:'Back to missions', missionsLabelShort:'Missions', heroLabelShort:'Hero',
   muteLabel:'Mute sound', unmuteLabel:'Unmute sound', darkThemeLabel:'Switch to dark theme', lightThemeLabel:'Switch to light theme',
   achievementUnlocked:'Achievement Unlocked!', niceBtn:'Nice! ✨', achievementsTitle:'Achievements',
   achStreak3Name:'Getting Started', achStreak3Desc:'Play 3 days in a row',
@@ -812,32 +930,34 @@ en: {
   achCoinsName:'Coin Collector', achCoinsDesc:'Have 100 coins at once',
   achAbacusName:'Abacus Explorer', achAbacusDesc:'Try the Abacus Lab',
   achSpeedName:'Speed Demon', achSpeedDesc:'Get a perfect Speed Dash round',
-  play:'Play!', chooseHero:'Choose Your Hero', teacherModeBtn:'👩\u200d🏫 Teacher Mode',
-  tabHeroes:'🦸 Heroes', tabGear:'🎒 Gear', pickHero:'Pick Your Hero', heroShop:'Hero Shop', spendCoins:'Spend coins on cool gear!',
-  chooseMission:'Choose a Mission', myLevelPath:'My Level Path', yourLevelPath:'Your Level Path',
-  skillMapLegend:'🔒 Locked  ·  👉 Up next  ·  ✅ Done',
+  play:'Play!', chooseHero:'Choose Your Hero', charPlayBtn:'Play! ▶️', backToHero:'← Back to Hero', grownupAreaTag:'Grown-up area', tapYourAnswer:'Tap your answer', gotItContinue:'Got it! ▶️', teacherModeBtn:'👩\u200d🏫 Teacher Mode',
+  tabHeroes:'🦸 Heroes', tabGear:'🎒 Hero Gear', pickHero:'Pick Your Hero', heroShop:'Hero Shop', spendCoins:'Spend coins on cool gear!',
+  chooseMission:'Choose a Mission', myLevelPath:'🗺️ My Hero Path', yourLevelPath:'🗺️ Your Hero Journey',
+  skillMapLegend:'🔒 Locked  ·  ⭐ Next  ·  ✅ Complete',
+  lockedTileToast:'Finish Level {n} first! ⭐', lockedGateToast:'Ask a grown-up to unlock this. 🔒',
   abacusLabTitle:'Abacus Lab', abacusLabSub:'Say a number, or tap the beads!',
-  nextLevel:'Next Level ▶️', levelMap:'🗺️ Level Map', nextMission:'Next Mission', getCertificate:'🏆 Get Certificate',
-  certTitle:'Certificate of Math Heroism', certifiesThat:'This certifies that', printBtn:'🖨️ Print', backBtn:'Back',
+  placeOnes:'ones', placeTens:'tens', placeHundreds:'hundreds', abacusClear:'↺ Clear',
+  nextLevel:'Next Level ▶️', levelMap:'🗺️ Level Map', nextMission:'Continue Adventure →', getCertificate:'🏆 Get Certificate',
+  certHeroLine:"🏆 You're a Math Hero!", certTitle:'Certificate of Math Heroism', certifiesThat:'This certifies that', printBtn:'🖨️ Print', backBtn:'Back',
   certSignedBy:'Mind Math Heroes', viewCertificateFor:'View certificate for Level {n}: {name}',
   grownupsOnly:'Grown-ups only 🔒', cancelBtn:'Cancel', parentDashboard:'Parent Dashboard',
-  teacherModeTitle:'Teacher / Presenter Mode', teacherModeSub:'Full manual control — great for screen-sharing with a class.',
-  newProblem:'🎲 New Problem', showNext:'▶️ Show Next', revealAnswer:'✅ Reveal Answer', classTally:'Class Tally',
+  teacherModeTitle:'👩‍🏫 Teacher Mode', teacherModeSub:'Control the questions and reveal answers for your class.',
+  newProblem:'🎲 New Problem', showNext:'▶️ Next Question', revealAnswer:'✅ Reveal Answer', classTally:'📊 Class Score',
   showAbacus:'🧮 Show Abacus', readAloud:'🔊 Read Aloud', correctLabel:'Correct', tryAgainLabel:'Try Again',
   pressNewProblem:'Press "New Problem"',
-  plusOneCorrect:'+1 Correct', plusOneTry:'+1 Try Again', resetBtn:'Reset',
-  greatPracticing:'Great practicing!', stretchBreak:'Maybe time for a little stretch break?',
-  keepPlaying:'Keep Playing', takeBreak:'Take a Break', keepGoing:'Keep Going ▶️', gotIt:'Got it!',
-  askGrownup:'Ask a grown-up!', parentUnlockText:'Levels 6-8 use bigger numbers. A grown-up can unlock them.', notNow:'Not Now',
-  modeStoryTitle:'Hero Journey', modeStoryDesc:'Progress through levels, chapter by chapter',
-  modeSpeedTitle:'Speed Dash', modeSpeedDesc:'Quick timed challenge',
-  modeDailyTitle:'Daily Mission', modeDailyDesc:'1-2 quick questions today',
-  modeFreeTitle:'Free Play', modeFreeDesc:'No timer, just practice',
-  modeAbacusTitle:'Abacus Lab', modeAbacusDesc:'Talk numbers, watch beads move!',
-  modeWeakTitle:'Weak Spots', modeWeakDesc:'Practice the facts that trip you up',
+  plusOneCorrect:'+1 Correct', plusOneTry:'+1 Try Again', resetBtn:'↺ Reset Score', resetConfirm:'Tap again to reset',
+  greatPracticing:"You're doing great! 🌟", stretchBreak:'Maybe time for a little stretch break?',
+  keepPlaying:'Keep Playing', takeBreak:'Take a Break', keepGoing:'Keep Going ▶️', gotIt:'Next ▶️',
+  askGrownup:'Ask a grown-up!', parentUnlockText:'These levels are a little trickier. Ask a grown-up to unlock them!', notNow:'Not Now',
+  modeStoryTitle:'Hero Journey', modeStoryDesc:'Complete levels and become a Math Hero!',
+  modeSpeedTitle:'Speed Dash', modeSpeedDesc:'Race the clock!',
+  modeDailyTitle:'Daily Mission', modeDailyDesc:'Answer 1–2 quick questions!',
+  modeFreeTitle:'Free Play', modeFreeDesc:'No timer — just practice!',
+  modeAbacusTitle:'Abacus Lab', modeAbacusDesc:'Say a number and watch the beads move!',
+  modeWeakTitle:'Weak Spots', modeWeakDesc:'Practice the facts you find tricky!',
   watchNumbers:'Watch the numbers!', fingerWarmup:"Let's count on our fingers first!",
-  difficultyMeterAria:'Difficulty: level {n} of {total}',
-  readIt:'🔊 Read it', sayAnswer:'🎤 Say answer', helperBtn:'🧮 Helper', replayNumbers:'🔁 Replay numbers',
+  difficultyMeterAria:'Difficulty: level {n} of {total}', difficultyShort:'Difficulty',
+  readIt:'🔊 Hear Question', sayAnswer:'🎤 Say Answer', helperBtn:'🧮 Show Helper', replayNumbers:'🔁 Replay numbers',
   questionOf:'Question {n} of {t}', levelChip:'Level {n}: {name}', levelChipDefault:'Level 1',
   awesomeFeedback:'Awesome! 🌟', greatJobFeedback:'Great job! 🎉', gotItFeedback:'You got it! 💪', superFeedback:'Super! ✨',
   nailedItFeedback:'Nailed it! 🙌', brilliantFeedback:'Brilliant! 🌈', tryAgainFeedback:'So close! Try again 🐾',
@@ -845,24 +965,25 @@ en: {
   answerIsFeedback:'The answer is {a}! 💡', voiceUnsupported:'Voice input not supported on this device.',
   voiceListening:'🎙️ Listening...', voiceDidntCatch:"Didn't catch that, try tapping!", voiceHeard:'I heard {n} — try again!',
   voiceHiccup:'Voice hiccup, try again!',
-  labSayNumber:'🎤 Say a number', labListening:'🎙️ Listening...', labHeard:"That's {n}!", labSpeakHeard:'I heard {n}',
+  labSayNumber:'🎤 Say a Number', labListening:'🎙️ Listening...', labHeard:"That's {n}!", labSpeakHeard:'I heard {n}',
   labDidntCatch:"Didn't catch that — try again!", labTooBig:'Try a smaller number!', labVoiceUnsupported:'Voice input not supported on this device.',
   labVoiceHiccup:'Voice hiccup, try again!', labHeardBeads:'I heard {n}! Look at the beads.', runningTotal:'Running total', watchBeads:'Watch the beads move as the numbers flash!',
-  tapBeadsSayNumber:'Tap beads or say a number',
+  tapBeadsSayNumber:'Tap beads or say a number', beadAria:'{place} place, {kind}, {state} — press Enter to toggle', beadHeaven:'heaven bead worth 5', beadEarth:'earth bead {i} worth 1', beadRaised:'raised', beadLowered:'lowered',
   greatJobHero:'Great job, hero! 🎉', levelComplete:'Level {n} Complete! 🎉', earnedCoins:'You earned',
+  earnedCoinsMsg:'You earned {n} coins! 🪙', earnedOneCoinMsg:'You earned 1 coin! 🪙', zeroCoinsMsg:'You finished the round! 🌟 Answer some right next time to earn coins.',
   allLevelsDoneHeading:'🏆 You mastered the whole Hero Journey!',
   coinsSuffix:'coins!', unlockNext:'🔓 Level {n} Unlocked: {name}!', grownupUnlockBtn:'👨\u200d👩\u200d👧 Grown-up Unlock',
   nextLevelBtn:'Next: Level {n} ▶️', certDetail:'completed Level {n}: {name} in the Hero Journey!',
-  gateQuestion:'What is {a} + {b}?', grownupCheckQuestion:'Grown-up check: What is {a} + {b}?',
-  teacherReadyPress:'Ready — press Show Next', teacherAnswerEq:'= ?', readyPrompt:'Ready?',
+  gateQuestion:'What is {a} + {b}?', grownupCheckQuestion:'Grown-up check — what is {a} + {b}?', grownupCheckHint:'Please solve this to continue.',
+  teacherReadyPress:'Ready — press Next Question', teacherAnswerEq:'= ?', readyPrompt:'Ready?',
   miniHigh5:'High five!', miniWayToGo:'Way to go!', miniOnFire:"You're on fire!", miniAwesomeStreak:'Awesome streak!',
   miniProgress:'{n} done — {r} to go!',
-  tutorial1Head:'Watch the numbers!', tutorial1Text:'Numbers will flash on screen one at a time. Watch closely!',
+  tutorial1Head:'Watch the numbers!', tutorial1Text:'Numbers will flash one at a time. Ready? 👀',
   tutorial2Head:'Tap your answer', tutorial2Text:'After the numbers flash, tap the answer that matches the total!',
-  tutorial3Head:'Try the Abacus Helper', tutorial3Text:'Tap the "Helper" button anytime to see the numbers on a real abacus!',
+  tutorial3Head:'Try the Abacus Helper', tutorial3Text:'Tap the "Show Helper" button anytime to see the numbers on a real abacus!',
   letsPlay:"Let's Play!",
   finishToUnlock:'Finish Level {n} to unlock', askGrownupToUnlock:'Ask a grown-up to unlock',
-  weakEmptyHeading:'No weak spots yet!', weakEmptyText:"Play a few rounds first and we'll find the facts that trip you up.", weakEmptyCta:'🎮 Free Play',
+  weakEmptyHeading:'No weak spots yet!', weakEmptyText:"Play a few rounds first and we'll find the facts you find tricky.", weakEmptyCta:'🎮 Free Play',
   dailyDoneHeading:"Today's mission is done!", dailyDoneText:'Great job! Come back tomorrow for a new one.',
   gateWrongFeedback:'Not quite — try again.',
   buyBtn:'Buy', wearBtn:'Wear', equippedBtn:'Equipped', ownedLabel:'Owned',
@@ -871,7 +992,8 @@ en: {
   upgradeBtn:'⬆️ Upgrade', upgradedLabel:'✨ Upgraded',
   dashChildName:'Child name', dashQuestionsAnswered:'Total questions answered', dashAccuracy:'Overall accuracy',
   dashStreak:'Current streak', dashCoins:'Total coins earned', dashJourney:'Hero Journey progress',
-  dashJourneyVal:'Level {n} unlocked · {c}/{total} levels completed', dashPractice:'Practice difficulty (Speed/Free/Daily)',
+  dashJourneyVal:'Level {n} unlocked · {c}/{total} levels completed', dashPractice:'Practice difficulty (Speed / Free / Daily)',
+  dashPracticeVal:'Level {n} of {total} — {name}',
   dashNoLevels:'No levels attempted yet.', dashLevelCorrect:'{c}/{t} correct ({p}%)', dashExport:'📸 Export as Image',
   dashTrendTitle:'Last 7 Days', dashTrendAria:'Bar chart of accuracy percentage for the last 7 days',
   notSet:'(not set)', defaultHeroName:'Math Hero',
@@ -893,10 +1015,11 @@ en: {
   modeStory:'Hero Journey', modeSpeed:'Speed Dash', modeDaily:'Daily Mission', modeFree:'Free Play', modeWeak:'Weak Spots'
 },
 ar: {
-  appTitle:'أبطال الحساب الذهني', appSubtitle:'درّب عقلك — بطريقة الأبطال!',
-  yourName:'اسمك (اختياري)', resumeDefault:'تكمل من حيث وقفت؟', resumeBtn:'▶️ كمّل', startFresh:'ابدأ من جديد',
-  langToggleLabel:'تغيير اللغة', parentGateLabel:'إعدادات الوالدين', backHome:'العودة للرئيسية', teacherLevelLabel:'المستوى المعروض',
+  appTitle:'أبطال الحساب الذهني', appSubtitle:'كن بطل الحساب! 🦸',
+  yourName:'ما اسم بطلك؟', yourNamePlaceholder:'اكتب اسمك', resumeDefault:'تكمل من حيث وقفت؟', resumeBtn:'▶️ كمّل', startFresh:'ابدأ من جديد',
+  langToggleLabel:'تغيير اللغة', parentGateLabel:'إعدادات الوالدين', backHome:'العودة للرئيسية', teacherLevelLabel:'اختر مستوى',
   langLabelShort:'اللغة', homeLabelShort:'الرئيسية', gateLabelShort:'الوالدين', themeLabelShort:'المظهر', muteLabelShort:'الصوت',
+  backToMissions:'العودة للمهام', missionsLabelShort:'المهام', heroLabelShort:'البطل',
   muteLabel:'كتم الصوت', unmuteLabel:'تشغيل الصوت', darkThemeLabel:'التحويل للوضع الليلي', lightThemeLabel:'التحويل للوضع النهاري',
   achievementUnlocked:'إنجاز جديد!', niceBtn:'رائع! ✨', achievementsTitle:'الإنجازات',
   achStreak3Name:'بداية موفقة', achStreak3Desc:'العب 3 أيام متتالية',
@@ -907,32 +1030,34 @@ ar: {
   achCoinsName:'جامع العملات', achCoinsDesc:'امتلك 100 عملة في نفس الوقت',
   achAbacusName:'مستكشف العداد', achAbacusDesc:'جرّب معمل العداد',
   achSpeedName:'شيطان السرعة', achSpeedDesc:'احصل على جولة سرعة مثالية',
-  play:'العب!', chooseHero:'اختر بطلك', teacherModeBtn:'👩\u200d🏫 وضع المعلم',
-  tabHeroes:'🦸 الأبطال', tabGear:'🎒 المستلزمات', pickHero:'اختر بطلك', heroShop:'متجر الأبطال', spendCoins:'اصرف عملاتك على مستلزمات رائعة!',
-  chooseMission:'اختر مهمة', myLevelPath:'مسار مستوياتي', yourLevelPath:'مسار مستوياتك',
-  skillMapLegend:'🔒 مقفل  ·  👉 التالي  ·  ✅ تم',
+  play:'العب!', chooseHero:'اختر بطلك', charPlayBtn:'العب! ▶️', backToHero:'← العودة للبطل', grownupAreaTag:'منطقة الكبار', tapYourAnswer:'المس إجابتك', gotItContinue:'فهمت! ▶️', teacherModeBtn:'👩\u200d🏫 وضع المعلم',
+  tabHeroes:'🦸 الأبطال', tabGear:'🎒 مستلزمات البطل', pickHero:'اختر بطلك', heroShop:'متجر الأبطال', spendCoins:'اصرف عملاتك على مستلزمات رائعة!',
+  chooseMission:'اختر مهمة', myLevelPath:'🗺️ مسار بطولتي', yourLevelPath:'🗺️ رحلة بطولتك',
+  skillMapLegend:'🔒 مقفل  ·  ⭐ التالي  ·  ✅ مكتمل',
+  lockedTileToast:'أكمل المستوى {n} أولاً! ⭐', lockedGateToast:'اطلب من أحد الكبار فتح هذا. 🔒',
   abacusLabTitle:'معمل العداد', abacusLabSub:'قل رقماً أو المس الخرزات!',
-  nextLevel:'المستوى التالي ▶️', levelMap:'🗺️ خريطة المستويات', nextMission:'مهمة تالية', getCertificate:'🏆 احصل على الشهادة',
-  certTitle:'شهادة بطولة الحساب', certifiesThat:'تشهد هذه الشهادة بأن', printBtn:'🖨️ طباعة', backBtn:'رجوع',
+  placeOnes:'آحاد', placeTens:'عشرات', placeHundreds:'مئات', abacusClear:'↺ مسح',
+  nextLevel:'المستوى التالي ▶️', levelMap:'🗺️ خريطة المستويات', nextMission:'واصل المغامرة →', getCertificate:'🏆 احصل على الشهادة',
+  certHeroLine:'🏆 أنت بطل حساب!', certTitle:'شهادة بطولة الحساب', certifiesThat:'تشهد هذه الشهادة بأن', printBtn:'🖨️ طباعة', backBtn:'رجوع',
   certSignedBy:'أبطال الحساب الذهني', viewCertificateFor:'عرض شهادة المستوى {n}: {name}',
   grownupsOnly:'للكبار فقط 🔒', cancelBtn:'إلغاء', parentDashboard:'لوحة تحكم الوالدين',
-  teacherModeTitle:'وضع المعلم / العرض', teacherModeSub:'تحكم كامل يدوي — رائع لمشاركة الشاشة مع الفصل.',
-  newProblem:'🎲 مسألة جديدة', showNext:'▶️ اعرض التالي', revealAnswer:'✅ اظهر الإجابة', classTally:'نتائج الفصل',
+  teacherModeTitle:'👩‍🏫 وضع المعلم', teacherModeSub:'تحكّم في الأسئلة واعرض الإجابات لفصلك.',
+  newProblem:'🎲 مسألة جديدة', showNext:'▶️ السؤال التالي', revealAnswer:'✅ اظهر الإجابة', classTally:'📊 نتيجة الفصل',
   showAbacus:'🧮 اعرض العداد', readAloud:'🔊 اقرأها', correctLabel:'صحيح', tryAgainLabel:'حاول مجدداً',
   pressNewProblem:'اضغط "مسألة جديدة"',
-  plusOneCorrect:'+1 صحيح', plusOneTry:'+1 حاول مجدداً', resetBtn:'إعادة تعيين',
-  greatPracticing:'أحسنت التمرين!', stretchBreak:'ربما حان وقت استراحة قصيرة؟',
-  keepPlaying:'استمر باللعب', takeBreak:'خذ استراحة', keepGoing:'استمر ▶️', gotIt:'فهمت!',
-  askGrownup:'اسأل أحد الكبار!', parentUnlockText:'المستويات 6-8 تحتوي أرقاماً أكبر. يمكن لأحد الكبار فتحها.', notNow:'ليس الآن',
-  modeStoryTitle:'رحلة البطل', modeStoryDesc:'تقدم عبر المستويات، فصلاً بعد فصل',
-  modeSpeedTitle:'تحدي السرعة', modeSpeedDesc:'تحدي سريع بوقت محدد',
-  modeDailyTitle:'مهمة اليوم', modeDailyDesc:'سؤال أو اثنان سريعان اليوم',
-  modeFreeTitle:'لعب حر', modeFreeDesc:'بدون وقت، تدرب فقط',
-  modeAbacusTitle:'معمل العداد', modeAbacusDesc:'تكلم بالأرقام، وشاهد الخرزات تتحرك!',
-  modeWeakTitle:'نقاط الضعف', modeWeakDesc:'تدرب على الحقائق التي تصعب عليك',
+  plusOneCorrect:'+1 صحيح', plusOneTry:'+1 حاول مجدداً', resetBtn:'↺ تصفير النتيجة', resetConfirm:'اضغط مرة أخرى للتصفير',
+  greatPracticing:'أنت تبلي بلاءً رائعاً! 🌟', stretchBreak:'ربما حان وقت استراحة قصيرة؟',
+  keepPlaying:'استمر باللعب', takeBreak:'خذ استراحة', keepGoing:'استمر ▶️', gotIt:'التالي ▶️',
+  askGrownup:'اسأل أحد الكبار!', parentUnlockText:'هذه المستويات أصعب قليلاً. اطلب من أحد الكبار فتحها!', notNow:'ليس الآن',
+  modeStoryTitle:'رحلة البطل', modeStoryDesc:'أكمل المستويات وكن بطل الحساب!',
+  modeSpeedTitle:'تحدي السرعة', modeSpeedDesc:'سابق الساعة!',
+  modeDailyTitle:'مهمة اليوم', modeDailyDesc:'أجب عن سؤال أو اثنين سريعين!',
+  modeFreeTitle:'لعب حر', modeFreeDesc:'بدون وقت — فقط تدرّب!',
+  modeAbacusTitle:'معمل العداد', modeAbacusDesc:'قل رقماً وشاهد الخرزات تتحرك!',
+  modeWeakTitle:'نقاط الضعف', modeWeakDesc:'تدرب على الحقائق التي تجدها صعبة!',
   watchNumbers:'راقب الأرقام!', fingerWarmup:'لنعد على أصابعنا أولاً!',
-  difficultyMeterAria:'الصعوبة: المستوى {n} من {total}',
-  readIt:'🔊 اقرأها', sayAnswer:'🎤 قل الإجابة', helperBtn:'🧮 مساعد', replayNumbers:'🔁 أعد عرض الأرقام',
+  difficultyMeterAria:'الصعوبة: المستوى {n} من {total}', difficultyShort:'الصعوبة',
+  readIt:'🔊 اسمع السؤال', sayAnswer:'🎤 قل الإجابة', helperBtn:'🧮 اعرض المساعد', replayNumbers:'🔁 أعد عرض الأرقام',
   questionOf:'السؤال {n} من {t}', levelChip:'المستوى {n}: {name}', levelChipDefault:'المستوى 1',
   awesomeFeedback:'رائع! 🌟', greatJobFeedback:'أحسنت! 🎉', gotItFeedback:'عرفتها! 💪', superFeedback:'ممتاز! ✨',
   nailedItFeedback:'بالضبط! 🙌', brilliantFeedback:'عبقري! 🌈', tryAgainFeedback:'قريب جداً! حاول مرة أخرى 🐾',
@@ -940,21 +1065,21 @@ ar: {
   answerIsFeedback:'الإجابة هي {a}! 💡', voiceUnsupported:'الإدخال الصوتي غير مدعوم على هذا الجهاز.',
   voiceListening:'🎙️ أستمع...', voiceDidntCatch:'لم أسمعك، جرب اللمس!', voiceHeard:'سمعت {n} — حاول مرة أخرى!',
   voiceHiccup:'مشكلة بالصوت، حاول مرة أخرى!',
-  labSayNumber:'🎤 قل رقماً', labListening:'🎙️ أستمع...', labHeard:'هذا هو {n}!', labSpeakHeard:'سمعت {n}',
+  labSayNumber:'🎤 قل رقماً', labListening:'🎙️ أستمع...', labHeard:'هذا هو {n}!', labSpeakHeard:'سمعت {n}', earnedCoinsMsg:'ربحت {n} عملة! 🪙', earnedOneCoinMsg:'ربحت عملة واحدة! 🪙', zeroCoinsMsg:'أنهيت الجولة! 🌟 أجب إجابات صحيحة في المرة القادمة لتربح عملات.',
   labDidntCatch:'لم أسمعك — حاول مرة أخرى!', labTooBig:'جرب رقماً أصغر!', labVoiceUnsupported:'الإدخال الصوتي غير مدعوم على هذا الجهاز.',
   labVoiceHiccup:'مشكلة بالصوت، حاول مرة أخرى!', labHeardBeads:'سمعت {n}! انظر إلى الخرزات.', runningTotal:'المجموع الحالي', watchBeads:'راقب الخرزات وهي تتحرك مع ظهور الأرقام!',
-  tapBeadsSayNumber:'المس الخرزات أو قل رقماً',
+  tapBeadsSayNumber:'المس الخرزات أو قل رقماً', beadAria:'خانة {place}، {kind}، {state} — اضغط Enter للتبديل', beadHeaven:'خرزة السماء بقيمة 5', beadEarth:'خرزة الأرض {i} بقيمة 1', beadRaised:'مرفوعة', beadLowered:'منخفضة',
   greatJobHero:'أحسنت يا بطل! 🎉', levelComplete:'اكتمل المستوى {n}! 🎉', earnedCoins:'ربحت',
   allLevelsDoneHeading:'🏆 أتقنت رحلة البطل بأكملها!',
   coinsSuffix:'عملة!', unlockNext:'🔓 فُتح المستوى {n}: {name}!', grownupUnlockBtn:'👨\u200d👩\u200d👧 فتح بواسطة الكبار',
   nextLevelBtn:'التالي: المستوى {n} ▶️', certDetail:'أكمل المستوى {n}: {name} في رحلة البطل!',
-  gateQuestion:'كم يساوي {a} + {b}؟', grownupCheckQuestion:'سؤال الكبار: كم يساوي {a} + {b}؟',
-  teacherReadyPress:'جاهز — اضغط اعرض التالي', teacherAnswerEq:'= ؟', readyPrompt:'جاهز؟',
+  gateQuestion:'كم يساوي {a} + {b}؟', grownupCheckQuestion:'سؤال الكبار — كم يساوي {a} + {b}؟', grownupCheckHint:'من فضلك حُلّ هذه للمتابعة.',
+  teacherReadyPress:'جاهز — اضغط السؤال التالي', teacherAnswerEq:'= ؟', readyPrompt:'جاهز؟',
   miniHigh5:'إيه الجمال ده!', miniWayToGo:'برافو عليك!', miniOnFire:'شغل ناري!', miniAwesomeStreak:'سلسلة رائعة!',
   miniProgress:'{n} خلصت — باقي {r}!',
-  tutorial1Head:'راقب الأرقام!', tutorial1Text:'ستظهر الأرقام على الشاشة واحداً تلو الآخر. راقب جيداً!',
+  tutorial1Head:'راقب الأرقام!', tutorial1Text:'ستظهر الأرقام واحداً تلو الآخر. جاهز؟ 👀',
   tutorial2Head:'المس إجابتك', tutorial2Text:'بعد ظهور الأرقام، المس الإجابة التي تطابق المجموع!',
-  tutorial3Head:'جرب مساعد العداد', tutorial3Text:'اضغط زر "مساعد" في أي وقت لترى الأرقام على عداد حقيقي!',
+  tutorial3Head:'جرب مساعد العداد', tutorial3Text:'اضغط زر "اعرض المساعد" في أي وقت لترى الأرقام على عداد حقيقي!',
   letsPlay:'يلا نلعب!',
   finishToUnlock:'أكمل المستوى {n} لفتحه', askGrownupToUnlock:'اسأل أحد الكبار لفتحه',
   weakEmptyHeading:'لا توجد نقاط ضعف بعد!', weakEmptyText:'العب بضع جولات أولاً وسنكتشف الحقائق التي تصعب عليك.', weakEmptyCta:'🎮 لعب حر',
@@ -966,7 +1091,8 @@ ar: {
   upgradeBtn:'⬆️ ترقية', upgradedLabel:'✨ مطوّر',
   dashChildName:'اسم الطفل', dashQuestionsAnswered:'إجمالي الأسئلة المجابة', dashAccuracy:'الدقة الإجمالية',
   dashStreak:'التتابع الحالي', dashCoins:'إجمالي العملات المكتسبة', dashJourney:'تقدم رحلة البطل',
-  dashJourneyVal:'المستوى {n} مفتوح · {c}/{total} مستويات مكتملة', dashPractice:'مستوى التمرين (سرعة/حر/يومي)',
+  dashJourneyVal:'المستوى {n} مفتوح · {c}/{total} مستويات مكتملة', dashPractice:'مستوى التمرين (سرعة / حر / يومي)',
+  dashPracticeVal:'المستوى {n} من {total} — {name}',
   dashNoLevels:'لم يتم تجربة أي مستوى بعد.', dashLevelCorrect:'{c}/{t} صحيحة ({p}%)', dashExport:'📸 تصدير كصورة',
   dashTrendTitle:'آخر 7 أيام', dashTrendAria:'مخطط شريطي لنسبة الدقة خلال آخر 7 أيام',
   notSet:'(غير محدد)', defaultHeroName:'بطل الحساب',
@@ -1038,6 +1164,23 @@ function playCarrot(){ tone([784,988],0.1); }
 function playUnlock(){ tone([523,659,784,988],0.11); }
 function playClack(){ tone([300],0.045); }
 
+/* ---- lightweight toast: transient status message for actions with no other visible
+   result (e.g. tapping a locked level tile). aria-live so it's also announced. ---- */
+let toastEl = null, toastTimer = null;
+function showToast(msg){
+  if(!toastEl){
+    toastEl = document.createElement('div');
+    toastEl.className = 'toast';
+    toastEl.setAttribute('role','status');
+    toastEl.setAttribute('aria-live','polite');
+    document.getElementById('app').appendChild(toastEl);
+  }
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> toastEl.classList.remove('show'), 2600);
+}
+
 /* ---- speech synthesis (TTS) ---- */
 function speak(text){
   if(state.muted) return;
@@ -1061,8 +1204,14 @@ function speak(text){
 // Lang/home glyphs don't change with state, so this only needs to run once at load —
 // unlike renderMuteButtons/applyTheme, which re-render on every toggle.
 function renderStaticIcons(){
-  document.querySelectorAll('.btn-lang-toggle').forEach(btn=> btn.innerHTML = ICON_SVG.globe);
-  document.querySelectorAll('[data-i18n-aria="backHome"]').forEach(btn=> btn.innerHTML = ICON_SVG.home);
+  // show the language you'd switch TO ("ع" from English, "EN" from Arabic) — a globe told a
+  // child nothing about which languages exist or which one they'd get.
+  const target = state.lang==='ar' ? 'EN' : 'ع';
+  document.querySelectorAll('.btn-lang-toggle').forEach(btn=> btn.innerHTML = '<span class="lang-glyph">'+target+'</span>');
+  document.querySelectorAll('[data-i18n-aria="backHome"], [data-i18n-aria="backToHero"]').forEach(btn=> btn.innerHTML = ICON_SVG.home);
+  // these controls return to the mission menu, not Home — a back arrow (and a "Back to missions"
+  // label via data-i18n-aria) instead of the misleading house glyph
+  document.querySelectorAll('[data-i18n-aria="backToMissions"], [data-i18n-aria="backBtn"]').forEach(btn=> btn.innerHTML = ICON_SVG.back);
 }
 function renderMuteButtons(){
   document.querySelectorAll('.btn-mute-toggle').forEach(btn=>{
@@ -1208,6 +1357,10 @@ function renderAchievementGrid(){
     const unlocked = !!state.achievements[a.id];
     const cell = document.createElement('div');
     cell.title = t(a.nameKey) + ' — ' + t(a.descKey);
+    // was title-only (not reliably announced); give locked badges a real accessible name so a
+    // parent using a screen reader knows what each greyed lock represents.
+    cell.setAttribute('role','img');
+    cell.setAttribute('aria-label', (unlocked ? '✅ ' : '🔒 ') + t(a.nameKey) + ' — ' + t(a.descKey));
     cell.style.cssText = 'text-align:center;font-size:26px;padding:6px;border-radius:12px;background:var(--surface);'
       + 'border:2px solid '+(unlocked?'var(--grass-dark)':'var(--border-soft)')+';opacity:'+(unlocked?'1':'.4')+';';
     cell.textContent = unlocked ? a.emoji : '🔒';
@@ -1241,7 +1394,8 @@ const ICON_SVG = {
   speakerOn:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.2L12 18.3V5.7L7.2 9.5H4z"/><path d="M16.2 9.2a4 4 0 0 1 0 5.6M18.8 6.6a7.8 7.8 0 0 1 0 10.8"/></svg>',
   speakerMuted:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5v5h3.2L12 18.3V5.7L7.2 9.5H4z"/><path d="M15.8 10.2l4.4 3.6M20.2 10.2l-4.4 3.6"/></svg>',
   globe:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.5 4 5.6 4 9s-1.4 6.5-4 9c-2.6-2.5-4-5.6-4-9s1.4-6.5 4-9z"/></svg>',
-  home:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-6h4v6"/></svg>'
+  home:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-6h4v6"/></svg>',
+  back:'<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>'
 };
 // 1 coin per correct answer, up to 25 questions a round — the old prices (5-12 coins, 61
 // total for the whole shop) meant a single strong round could nearly clear the shelf out.
@@ -1314,7 +1468,7 @@ let state = {
   skillStats: defaultSkillStats(),
   totalQuestions:0, totalCorrect:0, chaptersCompleted:0,
   highestUnlockedLevel:1, completedLevels:{}, levelStars:{},
-  parentApprovedHighLevels:false, tutorialSeen:false,
+  parentApprovedHighLevels:false, tutorialSeen:false, heroChosen:false,
   resume:null,
   muted:false, theme:'light',
   factStats:{}, achievements:{}, dailyLog:{}, dailyMissionDate:null
@@ -1376,22 +1530,24 @@ function recordDailyLog(isCorrect){
 function renderTrendChart(){
   const days = [];
   for(let i=6;i>=0;i--){ days.push(new Date(Date.now()-i*86400000).toISOString().slice(0,10)); }
-  const W=360, H=110, barW=36, gap=12, base=H-24;
+  // was a 360-wide viewBox with font-size:10 labels — ~10px on screen, hard for a parent to read
+  // on a phone. Wider viewBox + 13px labels + more headroom.
+  const W=392, H=132, barW=38, gap=13, base=H-30;
   const isAr = state.lang==='ar';
   let bars = '';
   days.forEach((day,i)=>{
     const log = state.dailyLog[day];
     const pct = log && log.q>0 ? Math.round((log.c/log.q)*100) : null;
     const x = 8 + i*(barW+gap);
-    const h = pct===null ? 2 : Math.max(2, Math.round((pct/100)*(base-14)));
+    const h = pct===null ? 2 : Math.max(2, Math.round((pct/100)*(base-18)));
     const y = base - h;
     const label = day.slice(5).replace('-','/');
     const color = pct===null ? 'var(--track-bg)' : (pct>=80?'var(--grass-dark)':pct>=50?'var(--sun)':'var(--berry)');
     bars += '<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+h+'" rx="5" fill="'+color+'"></rect>';
-    bars += '<text x="'+(x+barW/2)+'" y="'+(base+14)+'" text-anchor="middle" font-size="10" fill="var(--text-muted)">'+label+'</text>';
-    if(pct!==null) bars += '<text x="'+(x+barW/2)+'" y="'+(y-4)+'" text-anchor="middle" font-size="10" font-weight="700" fill="var(--brown)">'+pct+'%</text>';
+    bars += '<text x="'+(x+barW/2)+'" y="'+(base+16)+'" text-anchor="middle" font-size="13" fill="var(--text-muted)">'+label+'</text>';
+    if(pct!==null) bars += '<text x="'+(x+barW/2)+'" y="'+(y-4)+'" text-anchor="middle" font-size="13" font-weight="700" fill="var(--brown)">'+pct+'%</text>';
   });
-  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:360px;display:block;margin:0 auto;" role="img" aria-label="'+t('dashTrendAria')+'">'+bars+'</svg>';
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:392px;display:block;margin:0 auto;" role="img" aria-label="'+t('dashTrendAria')+'">'+bars+'</svg>';
 }
 function applyStreak(){
   const today = todayStr();
@@ -1404,7 +1560,16 @@ function applyStreak(){
 function renderCarrots(){
   ['start','char','mode','skillmap','game','abacus'].forEach(k=>{
     const el = document.getElementById('carrots-'+k);
-    if(el) el.textContent = state.totalCarrots;
+    if(el){
+      el.textContent = state.totalCarrots;
+      // the coin icon is aria-hidden, so a screen reader would otherwise just announce a bare
+      // number with no unit — label the whole pill.
+      const pill = el.closest('.pill');
+      if(pill){
+        pill.setAttribute('role','img');
+        pill.setAttribute('aria-label', state.totalCarrots+' '+t('coinsSuffix').replace('!',''));
+      }
+    }
   });
 }
 function renderStreakBadge(){
@@ -1431,7 +1596,21 @@ document.querySelectorAll('.btn-lang-toggle').forEach(btn=> btn.addEventListener
   initTeacherMode();
   updateMascots();
   renderMuteButtons();
+  renderStaticIcons(); // refresh the EN/ع language glyph
   applyTheme();
+  // JS-rendered screens aren't touched by applyStaticI18n() — refresh whichever is showing so a
+  // mid-session language switch doesn't leave half the screen in the old language.
+  const activeId = (document.querySelector('.screen.active')||{}).id;
+  if(activeId==='screen-dashboard') renderDashboard();
+  if(activeId==='screen-game'){
+    renderProgress();
+    if(currentQuestion && document.querySelectorAll('#choices-area .choice-btn').length){
+      document.getElementById('prompt-text').textContent = t('tapYourAnswer');
+    }
+    const gh = document.getElementById('game-heading');
+    const mk = {story:'modeStoryTitle',speed:'modeSpeedTitle',daily:'modeDailyTitle',free:'modeFreeTitle',weak:'modeWeakTitle'}[currentMode];
+    if(mk) gh.textContent = t(mk);
+  }
 }));
 document.querySelectorAll('.btn-mute-toggle').forEach(btn=> btn.addEventListener('click', toggleMute));
 document.getElementById('btn-theme-toggle').addEventListener('click', toggleTheme);
@@ -1449,16 +1628,35 @@ function moveFocusToScreen(scr){
   target.focus({preventScroll:true});
 }
 function showScreen(id){
+  // pure "keep going" celebrations have no gating callback and no queue dependency — their only
+  // handlers hide themselves. If one is mid-display when the player navigates (back button, a
+  // level-map jump), it used to stay painted on top of the unrelated new screen for its full
+  // timeout. Drop them on any screen change. (tutorial / weak-spots / daily-done / parent-unlock
+  // are launched deliberately from a screen and manage their own lifecycle — left alone.)
+  ['break-overlay','mini-overlay'].forEach(oid=> document.getElementById(oid).classList.add('hidden'));
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const scr = document.getElementById(id);
   scr.classList.add('active');
+  // each .screen is its own scroll container; without this, returning to a screen you'd
+  // previously scrolled leaves it parked mid-page with the heading off-screen.
+  scr.scrollTop = 0;
   moveFocusToScreen(scr);
 }
 function bounce(id){ const m=document.getElementById(id); m.classList.remove('happy'); void m.offsetWidth; m.classList.add('happy'); }
 
-document.getElementById('btn-play').addEventListener('click', ()=>{ bounce('mascot-start'); showScreen('screen-mode'); });
-document.getElementById('btn-choose-hero').addEventListener('click', ()=> showScreen('screen-character'));
+document.getElementById('btn-play').addEventListener('click', ()=>{
+  bounce('mascot-start');
+  // first run: send the child through hero selection before the mission menu, so the hero —
+  // the whole emotional hook — isn't silently skipped by tapping the biggest button.
+  if(!state.heroChosen){ showScreen('screen-character'); document.getElementById('tab-btn-heroes').click(); }
+  else showScreen('screen-mode');
+});
+document.getElementById('btn-choose-hero').addEventListener('click', ()=>{ showScreen('screen-character'); document.getElementById('tab-btn-heroes').click(); });
 document.getElementById('btn-char-back').addEventListener('click', ()=> showScreen('screen-start'));
+document.getElementById('btn-char-play').addEventListener('click', ()=>{
+  state.heroChosen = true; saveState();
+  showScreen('screen-mode');
+});
 document.getElementById('tab-btn-heroes').addEventListener('click', ()=>{
   document.getElementById('tab-btn-heroes').classList.add('active');
   document.getElementById('tab-btn-gear').classList.remove('active');
@@ -1480,8 +1678,10 @@ document.getElementById('btn-reward-continue').addEventListener('click', ()=> sh
 document.getElementById('btn-cert-back').addEventListener('click', ()=> showScreen(certReturnScreen));
 document.getElementById('btn-cert-print-now').addEventListener('click', ()=> window.print());
 document.getElementById('btn-dash-back').addEventListener('click', ()=> showScreen('screen-start'));
-document.getElementById('btn-teacher-mode').addEventListener('click', ()=>{ initTeacherMode(); showScreen('screen-teacher'); });
-document.getElementById('btn-teacher-back').addEventListener('click', ()=> showScreen('screen-start'));
+// Teacher Mode is now reached only from inside the parent area (⚙️ → gate → dashboard),
+// so a child can't wander into a screen full of adult controls.
+document.getElementById('btn-dash-teacher').addEventListener('click', ()=>{ initTeacherMode(); showScreen('screen-teacher'); });
+document.getElementById('btn-teacher-back').addEventListener('click', ()=>{ renderDashboard(); showScreen('screen-dashboard'); });
 
 document.querySelectorAll('.card').forEach(c=>{
   c.addEventListener('click', ()=>{
@@ -1538,7 +1738,7 @@ function renderCharGrid(){
     d.className = 'char-card' + (state.character===c.id ? ' selected':'');
     d.setAttribute('aria-pressed', state.character===c.id ? 'true' : 'false');
     d.innerHTML = '<div class="emoji">'+heroSvgMarkup(c.id)+'</div><div class="name">'+charName(c)+'</div>';
-    d.addEventListener('click', ()=>{ state.character=c.id; saveState(); renderCharGrid(); updateMascots(); });
+    d.addEventListener('click', ()=>{ state.character=c.id; state.heroChosen=true; saveState(); renderCharGrid(); updateMascots(); });
     wrap.appendChild(d);
   });
 }
@@ -1778,13 +1978,18 @@ function recordFactStat(q, isCorrect){
   if(isCorrect) state.factStats[key].c += 1;
   state.factStats[key].lvl = q.levelIdx;
 }
+// A fact counts as "weak" if it's been seen twice+ with <70% accuracy, OR it was missed on the
+// one and only time it came up. Without the second clause a child had to get the SAME fact wrong
+// across multiple rounds before Weak Spots showed anything — it read as broken to parents who'd
+// just watched their kid miss several questions.
+function isWeakFact(f){ return (f.t>=2 && (f.c/f.t)<0.7) || (f.t===1 && f.c===0); }
 function weakFactCount(){
-  return Object.values(state.factStats).filter(f=> f.t>=2 && (f.c/f.t)<0.7).length;
+  return Object.values(state.factStats).filter(isWeakFact).length;
 }
 function buildWeakQuestion(){
   const entries = Object.keys(state.factStats)
     .map(k=>({key:k, ...state.factStats[k]}))
-    .filter(f=> f.t>=2 && (f.c/f.t)<0.7);
+    .filter(isWeakFact);
   if(entries.length===0) return buildSequenceQuestion(rand(1, state.highestUnlockedLevel||1));
   entries.sort((a,b)=> (a.c/a.t)-(b.c/b.t));
   const weakest = entries.slice(0, Math.max(3, Math.ceil(entries.length/2)));
@@ -1798,8 +2003,8 @@ function buildWeakQuestion(){
 }
 
 /* ================= AUTHENTIC SOROBAN (1 heaven bead=5 + 4 earth beads=1 per rod) ================= */
-const BEAD_H = 20; // px spacing per bead slot
-const EARTH_TRACK_H = 100, HEAVEN_TRACK_H = 40, BEAD_HEIGHT = 18;
+const BEAD_H = 28; // px spacing per bead slot (>= BEAD_HEIGHT so stacked beads never overlap)
+const EARTH_TRACK_H = 118, HEAVEN_TRACK_H = 46, BEAD_HEIGHT = 26;
 
 function makeRodColumn(placeLabel, onChange){
   const col = document.createElement('div'); col.className='rod-col';
@@ -1829,9 +2034,9 @@ function makeRodColumn(placeLabel, onChange){
   // keeps each bead's aria-label in sync with its state so a screen reader hears the actual
   // value instead of nothing — called from render() so it can never go stale
   function updateLabels(){
-    heavenBead.setAttribute('aria-label', place+' place, heaven bead worth 5, '+(heavenActive?'raised':'lowered')+' — press Enter to toggle');
+    heavenBead.setAttribute('aria-label', t('beadAria',{place:place, kind:t('beadHeaven'), state:(heavenActive?t('beadRaised'):t('beadLowered'))}));
     earthBeads.forEach((b,i)=>{
-      b.setAttribute('aria-label', place+' place, earth bead '+(i+1)+' worth 1, '+(i<earthCount?'raised':'lowered')+' — press Enter to toggle');
+      b.setAttribute('aria-label', t('beadAria',{place:place, kind:t('beadEarth',{i:i+1}), state:(i<earthCount?t('beadRaised'):t('beadLowered'))}));
     });
   }
 
@@ -1905,7 +2110,7 @@ function makeSoroban(label, numRods, onChange){
   const wrap = document.createElement('div'); wrap.className='soroban';
   if(label){ const l=document.createElement('div'); l.className='label'; l.textContent=label; wrap.appendChild(l); }
   const frame = document.createElement('div'); frame.className='soroban-frame';
-  const places = ['ones','tens','hundreds'];
+  const places = [t('placeOnes'), t('placeTens'), t('placeHundreds')];
   const cols = [];
   for(let p=0;p<numRods;p++){
     cols[p] = makeRodColumn(places[p]||'', ()=>{ updateReadout(); if(onChange) onChange(wrap._getValue()); });
@@ -1935,7 +2140,9 @@ function makeSoroban(label, numRods, onChange){
 }
 
 /* ================= QUESTION ENGINE ================= */
-const QUESTIONS_PER_MODE = { story:25, free:25, speed:12, daily:2, weak:12 };
+// story was 25 — long for a 5-7 year-old's attention span (mini-celebration every 5, so 15
+// still gives three checkpoints). Single knob to tune round length per mode.
+const QUESTIONS_PER_MODE = { story:15, free:20, speed:12, daily:2, weak:12 };
 let currentMode = null, qIndex = 0, roundCarrots = 0, currentQuestion = null, wrongTries = 0;
 let timerInterval = null, breakTimerId = null, breakShown = false;
 let helperSoroban = null;
@@ -1966,9 +2173,12 @@ function startGame(mode, levelIdx){
     currentJourneyLevel = target; warmupShown = false;
   }
   currentMode = mode; qIndex = 0; roundCarrots = 0; breakShown = false;
+  const modeTitleKey = {story:'modeStoryTitle',speed:'modeSpeedTitle',daily:'modeDailyTitle',free:'modeFreeTitle',weak:'modeWeakTitle'}[mode] || 'modeStoryTitle';
+  document.getElementById('game-heading').textContent = t(modeTitleKey);
   document.getElementById('mascot-game').classList.remove('sad');
   document.getElementById('abacus-panel').classList.add('hidden');
   document.getElementById('btn-toggle-abacus').classList.remove('on');
+  ['replay-wrap','continue-wrap'].forEach(idc=>{ const e=document.getElementById(idc); if(e) e.remove(); });
   helperSoroban = null;
   updateMascots();
   renderProgress();
@@ -2012,6 +2222,26 @@ function showTutorial(onDone){
   };
 }
 
+// a stretch break must never cost the child a Speed Dash timeout: freeze the countdown (or the
+// flash, if it hasn't finished) while the modal is up, and resume it on "Keep Playing".
+let breakPausedSpeed = false, breakSavedPct = 0;
+function showBreakOverlay(){
+  breakPausedSpeed = false;
+  const onGame = document.getElementById('screen-game').classList.contains('active');
+  if(onGame && currentMode==='speed' && currentQuestion){
+    const choicesLive = [...document.querySelectorAll('#choices-area .choice-btn')].some(b=>!b.disabled);
+    if(choicesLive){
+      breakSavedPct = parseFloat(document.getElementById('timer-bar').style.width) || 0;
+      clearInterval(timerInterval);
+      breakPausedSpeed = true;
+    } else if(!document.querySelectorAll('#choices-area .choice-btn').length){
+      // still mid-flash — stop it so the numbers don't play out unseen behind the modal
+      flashToken++;
+      breakPausedSpeed = 'flash';
+    }
+  }
+  document.getElementById('break-overlay').classList.remove('hidden');
+}
 function startBreakTimer(){
   clearTimeout(breakTimerId);
   breakTimerId = setTimeout(()=>{
@@ -2019,11 +2249,14 @@ function startBreakTimer(){
     breakShown = true;
     // this timer is wall-clock, not tied to question progress, so it can otherwise land on
     // the exact same moment as a mini-mission or achievement overlay — defer instead of stacking
-    whenOverlayFree(()=> document.getElementById('break-overlay').classList.remove('hidden'));
+    whenOverlayFree(showBreakOverlay);
   }, 12*60*1000);
 }
 document.getElementById('btn-break-continue').addEventListener('click', ()=>{
   document.getElementById('break-overlay').classList.add('hidden'); startBreakTimer();
+  if(breakPausedSpeed==='flash' && currentQuestion){ startFlashSequence(currentQuestion); }
+  else if(breakPausedSpeed===true){ runSpeedTimer(breakSavedPct); }
+  breakPausedSpeed = false;
 });
 document.getElementById('btn-break-home').addEventListener('click', ()=>{
   document.getElementById('break-overlay').classList.add('hidden'); stopTimers(); showScreen('screen-start');
@@ -2069,6 +2302,8 @@ function nextQuestion(){
   trailEl.innerHTML=''; trailEl.classList.add('hidden');
   const replayWrap = document.getElementById('replay-wrap');
   if(replayWrap) replayWrap.remove();
+  const contWrap = document.getElementById('continue-wrap');
+  if(contWrap) contWrap.remove();
 
   const progressRatio = totalForMode()>1 ? qIndex/(totalForMode()-1) : 0;
   if(currentMode==='weak'){
@@ -2160,6 +2395,7 @@ function startFlashSequence(q){
   });
   later(()=>{
     setBigText(t('teacherAnswerEq'));
+    promptEl().textContent = t('tapYourAnswer'); // was left on "Watch the numbers!" into the answer phase
     renderChoices(q);
     addReplayButton(q);
     if(currentMode==='speed') startSpeedTimer();
@@ -2183,7 +2419,7 @@ function replaySequence(q){
     later(()=>{ eqAreaEl().innerHTML=''; }, tOffset);
     tOffset += 220;
   });
-  later(()=>{ setBigText(t('teacherAnswerEq')); }, tOffset);
+  later(()=>{ setBigText(t('teacherAnswerEq')); promptEl().textContent = t('tapYourAnswer'); }, tOffset);
 }
 
 function addReplayButton(q){
@@ -2339,7 +2575,27 @@ function handleAnswer(isCorrect, btnEl, timedOut){
       if(helperSoroban) helperSoroban._setValue(currentQuestion.answer);
       recordFactStat(currentQuestion, false);
       qIndex += 1; renderProgress(); saveResumeState();
-      after(()=>{ if(myToken!==flashToken) return; allBtns.forEach(b=>b.disabled=false); mascot.classList.remove('sad'); advanceAfterQuestion(); }, 1900);
+      // was a hard 1900ms auto-advance — too fast for a 5-7 year-old to read the sentence, hear
+      // it and look at the abacus before the screen changes. Let them continue at their own
+      // pace with a button; keep a long safety timer so an untouched screen still progresses.
+      const replayWrap = document.getElementById('replay-wrap');
+      if(replayWrap) replayWrap.remove();
+      let advanced = false;
+      const go = ()=>{
+        if(advanced || myToken!==flashToken) return;
+        advanced = true;
+        const cw = document.getElementById('continue-wrap'); if(cw) cw.remove();
+        allBtns.forEach(b=>b.disabled=false); mascot.classList.remove('sad');
+        advanceAfterQuestion();
+      };
+      const box = document.querySelector('#screen-game .question-box');
+      const wrap = document.createElement('div'); wrap.id='continue-wrap'; wrap.style.marginTop='6px';
+      const cbtn = document.createElement('button');
+      cbtn.className='big-btn small'; cbtn.textContent=t('gotItContinue');
+      cbtn.addEventListener('click', go);
+      wrap.appendChild(cbtn); box.appendChild(wrap);
+      cbtn.focus({preventScroll:true});
+      after(()=>{ if(myToken===flashToken) go(); }, 8000);
     } else {
       feedback.textContent = t('tryAgainFeedback');
       after(()=>{
@@ -2406,7 +2662,7 @@ function renderResumeBanner(){
     const modeKeys = {story:'modeStory', speed:'modeSpeed', daily:'modeDaily', free:'modeFree', weak:'modeWeak'};
     const label = t(modeKeys[state.resume.mode] || 'modeFree');
     const levelSuffix = state.resume.mode==='story' ? t('continueLevel',{n:state.resume.journeyLevel}) : '';
-    document.getElementById('resume-text').textContent = t('continueMode',{mode:label}) + levelSuffix + '?';
+    document.getElementById('resume-text').textContent = t('continueMode',{mode:label}) + levelSuffix + (state.lang==='ar'?'؟':'?');
     banner.classList.remove('hidden');
   } else {
     banner.classList.add('hidden');
@@ -2420,6 +2676,7 @@ document.getElementById('btn-resume').addEventListener('click', ()=>{
   document.getElementById('mascot-game').classList.remove('sad');
   document.getElementById('abacus-panel').classList.add('hidden');
   document.getElementById('btn-toggle-abacus').classList.remove('on');
+  ['replay-wrap','continue-wrap'].forEach(idc=>{ const e=document.getElementById(idc); if(e) e.remove(); });
   helperSoroban = null;
   updateMascots();
   renderProgress();
@@ -2458,7 +2715,12 @@ function finishRound(){
   state._lastRoundStars = roundStars;
   if(currentMode==='speed' && accuracy>=1) state._perfectSpeedRound = true;
 
-  document.getElementById('round-carrots').textContent = roundCarrots;
+  // never show "You earned 0 coins!" — reads as an un-rewarded finish. Positive fallback at zero,
+  // singular/plural everywhere else.
+  const coinsLine = document.getElementById('reward-coins-line');
+  if(roundCarrots <= 0) coinsLine.textContent = t('zeroCoinsMsg');
+  else if(roundCarrots === 1) coinsLine.textContent = t('earnedOneCoinMsg');
+  else coinsLine.textContent = t('earnedCoinsMsg',{n:roundCarrots});
   document.getElementById('stars-row').textContent = '⭐'.repeat(roundStars)+'☆'.repeat(3-roundStars);
   updateMascots();
 
@@ -2586,6 +2848,11 @@ document.getElementById('btn-lab-mic').addEventListener('click', function(){
     speak(t('labSpeakHeard',{n}));
   }, ()=>{ btn.disabled = false; btn.classList.remove('on'); btn.textContent=t('labSayNumber'); document.getElementById('lab-feedback').textContent=t('labVoiceHiccup'); });
 });
+document.getElementById('btn-lab-clear').addEventListener('click', ()=>{
+  const wrap = document.getElementById('lab-abacus-wrap');
+  if(wrap._rod) wrap._rod._setCount(0);
+  document.getElementById('lab-feedback').textContent = '';
+});
 
 /* ================= LEVEL PATH (skill map) ================= */
 /* Renders the levels as a horizontal snake board-game path (à la a classic kids' board game) —
@@ -2651,6 +2918,7 @@ function renderSkillMap(){
     '<svg viewBox="0 0 100 '+totalH+'" preserveAspectRatio="none" aria-hidden="true" '+
     'style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;">'+roadSvg+'</svg>');
 
+  let currentNodeWrap = null;
   LEVELS.forEach((l,i)=>{
     const p = points[i];
     const locked = l.id > state.highestUnlockedLevel;
@@ -2666,12 +2934,23 @@ function renderSkillMap(){
     const circle = document.createElement('button');
     circle.type = 'button';
     circle.className = 'skill-node-tile'+(isNext?' current':'')+(completed?' completed':'')+(locked?' locked':'');
-    circle.textContent = locked ? '🔒' : (isNext?'👉':(completed?'✅':String(l.id)));
+    circle.textContent = locked ? '🔒' : (isNext?'⭐':(completed?'✅':String(l.id)));
     circle.setAttribute('aria-label', t('levelChip',{n:l.id,name:levelName(l)})+
       (locked ? ' — '+(isGateLevel?t('askGrownupToUnlock'):t('finishToUnlock',{n:l.id-1})) : ' — '+levelDesc(l)));
     if(locked){
-      circle.disabled = !isGateLevel;
-      if(isGateLevel) circle.addEventListener('click', ()=> openParentUnlockGate(()=> renderSkillMap()));
+      // was `disabled` for non-gate locked tiles — a tap did nothing at all: no message, no
+      // sound, no nudge. A child taps a glowing star and concludes the game is broken. Keep it
+      // operable and explain, instead.
+      circle.setAttribute('aria-disabled','true');
+      if(isGateLevel){
+        circle.addEventListener('click', ()=> openParentUnlockGate(()=> renderSkillMap()));
+      } else {
+        circle.addEventListener('click', ()=>{
+          circle.classList.remove('nudge'); void circle.offsetWidth; circle.classList.add('nudge');
+          playWrong();
+          showToast(t('lockedTileToast',{n:l.id-1}));
+        });
+      }
     } else {
       circle.addEventListener('click', ()=> startGame('story', l.id));
     }
@@ -2706,25 +2985,47 @@ function renderSkillMap(){
       hint.textContent = '🔓 '+t('askGrownupToUnlock');
       nodeWrap.appendChild(hint);
     }
+    if(isNext || (!currentNodeWrap && locked && isGateLevel)) currentNodeWrap = nodeWrap;
     wrap.appendChild(nodeWrap);
   });
+
+  // The path is ~1000px tall with 13 levels; a child on level 6+ would otherwise land scrolled
+  // to the top among finished/locked tiles and have to hunt for their "⭐ Next" node. Bring it
+  // into view once the screen is actually visible (nav does renderSkillMap() then showScreen()).
+  if(currentNodeWrap){
+    setTimeout(()=>{
+      try{ currentNodeWrap.scrollIntoView({block:'center', inline:'nearest'}); }catch(e){}
+    }, 60);
+  }
 }
 
 /* ---- one-time parent approval to unlock levels 6-8 (bigger numbers) ---- */
+let parentGateReturnEl = null;
 function openParentUnlockGate(onSuccess){
+  // remember what to send keyboard focus back to (the generic overlay observer can miss this
+  // when the success path re-renders the Level Path and destroys the original tile)
+  parentGateReturnEl = (document.activeElement && document.activeElement !== document.body) ? document.activeElement : null;
   renderParentUnlockQuestion(onSuccess);
   document.getElementById('parentunlock-overlay').classList.remove('hidden');
+}
+function restoreParentGateFocus(){
+  if(parentGateReturnEl && document.body.contains(parentGateReturnEl)){ parentGateReturnEl.focus({preventScroll:true}); }
+  else {
+    const next = document.querySelector('#screen-skillmap .skill-node-tile.current, #screen-skillmap .skill-node-tile:not(.locked)');
+    if(next) next.focus({preventScroll:true});
+  }
+  parentGateReturnEl = null;
 }
 // split out so a wrong answer can regenerate a fresh question and stay open, instead of the
 // overlay just closing with no feedback at all — indistinguishable from the app being broken
 // to a grown-up who simply mistapped the arithmetic
 function renderParentUnlockQuestion(onSuccess){
-  const a = rand(4,9), b = rand(3,8);
+  const a = rand(11,29), b = rand(11,29);
   const answer = a+b;
   document.getElementById('parentunlock-question').textContent = t('grownupCheckQuestion',{a,b});
   document.getElementById('parentunlock-feedback').textContent = '';
   let choices = new Set([answer]);
-  while(choices.size<3){ let d=answer+pick([-3,-2,2,3]); if(d>0) choices.add(d); }
+  while(choices.size<3){ let d=answer+pick([-11,-9,-2,2,9,11]); if(d>0) choices.add(d); }
   const wrap = document.getElementById('parentunlock-choices'); wrap.innerHTML='';
   shuffle([...choices]).forEach(c=>{
     const b2=document.createElement('button'); b2.className='choice-btn'; b2.textContent=c;
@@ -2735,6 +3036,7 @@ function renderParentUnlockQuestion(onSuccess){
         if(state.highestUnlockedLevel < PARENT_GATE_LEVEL) state.highestUnlockedLevel = PARENT_GATE_LEVEL;
         saveState();
         onSuccess();
+        restoreParentGateFocus();
       } else {
         wrap.querySelectorAll('.choice-btn').forEach(x=> x.disabled=true);
         document.getElementById('parentunlock-feedback').textContent = t('gateWrongFeedback');
@@ -2746,6 +3048,7 @@ function renderParentUnlockQuestion(onSuccess){
 }
 document.getElementById('btn-parentunlock-cancel').addEventListener('click', ()=>{
   document.getElementById('parentunlock-overlay').classList.add('hidden');
+  restoreParentGateFocus();
 });
 
 /* ---- overlay accessibility: move focus into a dialog when it opens, return focus to whatever
@@ -2800,12 +3103,15 @@ document.addEventListener('keydown', (e)=>{
 // of silently bouncing back to Start with no feedback — indistinguishable from the app being
 // broken to a grown-up who simply mistapped the arithmetic
 function renderGateQuestion(){
-  const a = rand(3,9), b = rand(1,7);
+  // two two-digit numbers: comfortably outside a 5-7 year-old's mental range (the app's own
+  // target skill), still trivial for an adult. Was single-digit "a + b" — solvable by the very
+  // child the gate exists to stop, and only 1-of-3 to guess.
+  const a = rand(11,29), b = rand(11,29);
   const answer = a+b;
-  document.getElementById('gate-question').textContent = t('gateQuestion',{a,b});
+  document.getElementById('gate-question').textContent = t('grownupCheckQuestion',{a,b});
   document.getElementById('gate-feedback').textContent = '';
   let choices = new Set([answer]);
-  while(choices.size<3){ let d=answer+pick([-3,-2,2,3]); if(d>0) choices.add(d); }
+  while(choices.size<3){ let d=answer+pick([-11,-9,-2,2,9,11]); if(d>0) choices.add(d); }
   const wrap = document.getElementById('gate-choices'); wrap.innerHTML='';
   shuffle([...choices]).forEach(c=>{
     const b2=document.createElement('button'); b2.className='choice-btn'; b2.textContent=c;
@@ -2852,7 +3158,7 @@ function renderDashboard(){
     [t('dashStreak'), state.streakCount+' '+daysLabel(state.streakCount)],
     [t('dashCoins'), state.totalCarrots],
     [t('dashJourney'), t('dashJourneyVal',{n:state.highestUnlockedLevel, c:completedCount, total:LEVELS.length})],
-    [t('dashPractice'), (()=>{ const top = Math.round(Math.max(...Object.values(state.levelByMode))); return top+' / '+LEVELS.length+' ('+levelName(LEVELS[top-1]||LEVELS[0])+')'; })()]
+    [t('dashPractice'), (()=>{ const top = Math.round(Math.max(...Object.values(state.levelByMode))); return t('dashPracticeVal',{n:top, total:LEVELS.length, name:levelName(LEVELS[top-1]||LEVELS[0])}); })()]
   ];
   rows.forEach(r=>{
     const d=document.createElement('div'); d.className='dash-row';
@@ -3052,7 +3358,27 @@ document.getElementById('btn-teacher-read').addEventListener('click', ()=>{
 });
 document.getElementById('btn-tally-ok').addEventListener('click', ()=>{ tallyOk++; document.getElementById('tally-ok').textContent=tallyOk; playCorrect(); });
 document.getElementById('btn-tally-try').addEventListener('click', ()=>{ tallyTry++; document.getElementById('tally-try').textContent=tallyTry; });
-document.getElementById('btn-tally-reset').addEventListener('click', ()=>{ tallyOk=0; tallyTry=0; document.getElementById('tally-ok').textContent=0; document.getElementById('tally-try').textContent=0; });
+// two-tap confirm — a single mistap during a live class projection used to wipe the running
+// tally with no warning and no undo
+(function(){
+  const btn = document.getElementById('btn-tally-reset');
+  let armed = false, armTimer = null;
+  function disarm(){ armed=false; clearTimeout(armTimer); btn.textContent = t('resetBtn'); btn.classList.remove('confirm-armed'); }
+  btn.addEventListener('click', ()=>{
+    if(!armed){
+      armed = true;
+      btn.textContent = t('resetConfirm');
+      btn.classList.add('confirm-armed');
+      armTimer = setTimeout(disarm, 3000);
+      return;
+    }
+    disarm();
+    tallyOk=0; tallyTry=0;
+    document.getElementById('tally-ok').textContent=0;
+    document.getElementById('tally-try').textContent=0;
+  });
+  document.getElementById('btn-teacher-back').addEventListener('click', disarm);
+})();
 
 /* ================= SCENERY (skyline, stars, clouds) + INIT ================= */
 function addSkyline(){
@@ -3126,6 +3452,22 @@ addClouds();
 renderCharGrid();
 renderShop();
 loadState().then(()=>{ updateMascots(); renderStreakBadge(); });
+})();
+</script>
+<script>
+/* Offline support (fully optional — the game works without it). Only attempt registration on a
+   real HTTPS deployment where sw.js is served alongside this file; skipped on local previews and
+   embedded webviews that don't support service workers, so those stay error-free. */
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  var h = location.hostname;
+  var isProd = location.protocol === 'https:' && !/^(localhost|127\.|0\.0\.0\.0|\[?::1)/.test(h);
+  if(!isProd) return;
+  window.addEventListener('load', function(){
+    fetch('sw.js', { method: 'HEAD' })
+      .then(function(r){ if(r && r.ok) return navigator.serviceWorker.register('sw.js'); })
+      .catch(function(){});
+  });
 })();
 </script>
 </body>

@@ -8,6 +8,7 @@
 ![Dependencies: 0](https://img.shields.io/badge/dependencies-0-brightgreen)
 ![PWA: offline-ready](https://img.shields.io/badge/PWA-offline--ready-blue)
 ![i18n: EN and AR RTL](https://img.shields.io/badge/i18n-EN_%2F_AR_RTL-blue)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue)
 
 Children pick a hero, choose a mode, and solve addition, subtraction, multiplication, and
 division problems to earn coins, unlock gear, and work through a 13-level skill map. The
@@ -144,6 +145,7 @@ mind-math-heroes/
 ├── index.html   # the whole app: markup, styles, logic, inline SVG art
 ├── sw.js        # service worker (offline cache)
 ├── .nojekyll    # serve assets as-is on GitHub Pages
+├── LICENSE      # MIT
 └── README.md
 ```
 
@@ -172,5 +174,5 @@ sent off the device.
 
 ## 📄 License
 
-There is no license yet, so the default is all rights reserved. Add a `LICENSE` file to
-allow reuse.
+Released under the [MIT License](LICENSE). The web fonts are served from Google Fonts and
+keep their own licenses (SIL Open Font License).

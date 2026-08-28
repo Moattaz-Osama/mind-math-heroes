@@ -1,6 +1,7 @@
 /* Mind Math Heroes — offline service worker.
    Cache-first (stale-while-revalidate) so the game loads instantly and works on a flaky or
    absent connection. BUMP `CACHE` on every deploy so returning players pick up the new build. */
+
 const CACHE = 'mmh-2026-08-28a';
 const CORE = [
   './',
